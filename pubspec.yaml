@@ -38,6 +38,10 @@ dependencies:
  
   cupertino_icons: ^1.0.8
 
+  lottie: ^2.7.0
+  firebase_core: ^4.7.0
+  firebase_auth: ^6.4.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -64,6 +68,7 @@ flutter:
     assets:
        - assets/images/car_wash.jpg
        - assets/images/logo.png
+       - assets/animations/car_wash.json
  
   # To add assets to your application, add an assets section, like this:
   # assets:

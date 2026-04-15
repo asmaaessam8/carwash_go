@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+
 import '../../../../core/routes/routes.dart';
 
 class SplashPage extends StatefulWidget {
@@ -11,51 +13,51 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+  late AnimationController _animationController;
   late Animation<double> _logoFadeAnimation;
-  late Animation<double> _logoScaleAnimation;
-  late Animation<double> _backgroundScaleAnimation;
+  late Animation<double> _logoSlideAnimation;
+  late Animation<double> _lottieFadeAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
+    _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(milliseconds: 2200),
     );
 
     _logoFadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+      begin: 0,
+      end: 1,
     ).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeIn,
+        parent: _animationController,
+        curve: const Interval(0.0, 0.45, curve: Curves.easeIn),
       ),
     );
 
-    _logoScaleAnimation = Tween<double>(
-      begin: 0.7,
-      end: 1.0,
+    _logoSlideAnimation = Tween<double>(
+      begin: -30,
+      end: 0,
     ).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutBack,
+        parent: _animationController,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
       ),
     );
 
-    _backgroundScaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.08,
+    _lottieFadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
     ).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOut,
+        parent: _animationController,
+        curve: const Interval(0.35, 1.0, curve: Curves.easeIn),
       ),
     );
 
-    _controller.forward();
+    _animationController.forward();
 
     Timer(const Duration(seconds: 6), () {
       if (!mounted) return;
@@ -65,138 +67,107 @@ class _SplashPageState extends State<SplashPage>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _animationController.dispose();
     super.dispose();
-  }
-
-  Widget buildBubble({
-    required double size,
-    required double left,
-    required double top,
-    required int duration,
-    required double begin,
-    required double end,
-  }) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: begin, end: end),
-      duration: Duration(seconds: duration),
-      curve: Curves.easeInOut,
-      builder: (context, value, child) {
-        return Positioned(
-          left: left,
-          top: top + value,
-          child: Opacity(
-            opacity: 0.25,
-            child: Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                border: Border.all(
-                  color: Colors.white70,
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              Transform.scale(
-                scale: _backgroundScaleAnimation.value,
-                child: Image.asset(
-                  'assets/images/car_wash.jpg',
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Container(
-                color: Colors.black.withOpacity(0.45),
-              ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.fromARGB(255, 255, 255, 255),
+              Color.fromARGB(255, 255, 255, 255),
+              Color.fromARGB(255, 255, 255, 255),
+            ],
+            stops: [0.0, 0.58, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              return Column(
+                children: [
+                  const Spacer(flex: 2),
 
-              buildBubble(
-                size: 18,
-                left: 50,
-                top: 620,
-                duration: 4,
-                begin: 0,
-                end: -120,
-              ),
-              buildBubble(
-                size: 28,
-                left: 100,
-                top: 700,
-                duration: 5,
-                begin: 0,
-                end: -160,
-              ),
-              buildBubble(
-                size: 14,
-                left: 280,
-                top: 650,
-                duration: 4,
-                begin: 0,
-                end: -110,
-              ),
-              buildBubble(
-                size: 22,
-                left: 320,
-                top: 730,
-                duration: 6,
-                begin: 0,
-                end: -170,
-              ),
-              buildBubble(
-                size: 16,
-                left: 180,
-                top: 760,
-                duration: 5,
-                begin: 0,
-                end: -140,
-              ),
-
-              Center(
-                child: FadeTransition(
-                  opacity: _logoFadeAnimation,
-                  child: ScaleTransition(
-                    scale: _logoScaleAnimation,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          'assets/images/logo.png',
-                          width: 220,
-                          height: 220,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Clean. Shine. Go.',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 1,
+                  Opacity(
+                    opacity: _logoFadeAnimation.value,
+                    child: Transform.translate(
+                      offset: Offset(0, _logoSlideAnimation.value),
+                      child: Column(
+                        children: [
+                          Image.asset(
+                            'assets/images/logo.png',
+                            width: 150,
+                            height: 150,
+                            fit: BoxFit.contain,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 10),
+                          const Text(
+                            'CAR WASH',
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 8, 0, 255),
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Clean • Shine • Go',
+                            style: TextStyle(
+                              color: Color.fromARGB(179, 21, 0, 255),
+                              fontSize: 14,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ],
-          );
-        },
+
+                  const Spacer(),
+
+                  Opacity(
+                    opacity: _lottieFadeAnimation.value,
+                    child: SizedBox(
+                      height: 220,
+                      width: 300,
+                      child: Lottie.asset(
+                        'assets/animations/car_wash.json',
+                        fit: BoxFit.contain,
+                        repeat: true,
+                      ),
+                    ),
+                  ),
+
+                  const Spacer(flex: 2),
+
+                  Opacity(
+                    opacity: _lottieFadeAnimation.value,
+                    child: const Padding(
+                      padding: EdgeInsets.only(bottom: 26),
+                      child: Text(
+                        'Loading...',
+                        style: TextStyle(
+                          color: Color.fromARGB(179, 0, 13, 255),
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }

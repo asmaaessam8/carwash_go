@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "679309022789",
+    "project_id": "carwash-go-a8adc",
+    "storage_bucket": "carwash-go-a8adc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:679309022789:android:854d9604d69351f1bbb52c",
+        "android_client_info": {
+          "package_name": "com.noon.carwash_go"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApvIGbOQF8N3MOYk5mo-CLx8I9DzJgulQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
