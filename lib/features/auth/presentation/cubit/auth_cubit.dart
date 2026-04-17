@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -7,24 +8,34 @@ class AuthCubit extends Cubit<AuthState> {
   AuthCubit() : super(AuthInitial());
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> login({required String email, required String password}) async {
     emit(AuthLoading());
 
     try {
-      await _firebaseAuth.signInWithEmailAndPassword(
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
+      print('LOGIN AUTH SUCCESS: ${userCredential.user?.uid}');
+
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'uid': userCredential.user!.uid,
+        'email': email,
+        'lastLogin': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      print('LOGIN FIRESTORE SUCCESS');
+
       emit(AuthSuccess('Login successful'));
     } on FirebaseAuthException catch (e) {
+      print('LOGIN FIREBASE ERROR: ${e.code} - ${e.message}');
       emit(AuthError(_mapFirebaseAuthError(e)));
-    } catch (_) {
-      emit(AuthError('Something went wrong'));
+    } catch (e) {
+      print('LOGIN GENERAL ERROR: $e');
+      emit(AuthError(e.toString()));
     }
   }
 
@@ -37,34 +48,46 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
 
     try {
-      await _firebaseAuth.createUserWithEmailAndPassword(
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
+      print('REGISTER AUTH SUCCESS: ${userCredential.user?.uid}');
+
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'uid': userCredential.user!.uid,
+        'name': name,
+        'phone': phone,
+        'email': email,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      print('REGISTER FIRESTORE SUCCESS');
+
       emit(AuthSuccess('Register successful'));
     } on FirebaseAuthException catch (e) {
+      print('REGISTER FIREBASE ERROR: ${e.code} - ${e.message}');
       emit(AuthError(_mapFirebaseAuthError(e)));
-    } catch (_) {
-      emit(AuthError('Something went wrong'));
+    } catch (e) {
+      print('REGISTER GENERAL ERROR: $e');
+      emit(AuthError(e.toString()));
     }
   }
 
-  Future<void> forgotPassword({
-    required String email,
-  }) async {
+  Future<void> forgotPassword({required String email}) async {
     emit(AuthLoading());
 
     try {
-      await _firebaseAuth.sendPasswordResetEmail(
-        email: email,
-      );
-
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+      print('RESET PASSWORD EMAIL SENT TO: $email');
       emit(AuthSuccess('Reset link sent to your email'));
     } on FirebaseAuthException catch (e) {
+      print('FORGOT PASSWORD FIREBASE ERROR: ${e.code} - ${e.message}');
       emit(AuthError(_mapFirebaseAuthError(e)));
-    } catch (_) {
-      emit(AuthError('Something went wrong'));
+    } catch (e) {
+      print('FORGOT PASSWORD GENERAL ERROR: $e');
+      emit(AuthError(e.toString()));
     }
   }
 
@@ -73,11 +96,14 @@ class AuthCubit extends Cubit<AuthState> {
 
     try {
       await _firebaseAuth.signOut();
+      print('LOGOUT SUCCESS');
       emit(AuthSuccess('Logged out successfully'));
     } on FirebaseAuthException catch (e) {
+      print('LOGOUT FIREBASE ERROR: ${e.code} - ${e.message}');
       emit(AuthError(_mapFirebaseAuthError(e)));
-    } catch (_) {
-      emit(AuthError('Something went wrong'));
+    } catch (e) {
+      print('LOGOUT GENERAL ERROR: $e');
+      emit(AuthError(e.toString()));
     }
   }
 

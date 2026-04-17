@@ -30,18 +30,20 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
+        print('FORGOT PASSWORD PAGE STATE: $state');
+
         if (state is AuthSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
 
           Navigator.pushReplacementNamed(context, AppRoutes.login);
         }
 
         if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       builder: (context, state) {
@@ -67,10 +69,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   const Text(
                     'Enter your email to reset password',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                   const SizedBox(height: 28),
                   CustomTextField(
@@ -84,9 +83,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     text: isLoading ? 'Loading...' : 'Send Reset Link',
                     onPressed: () {
                       if (formKey.currentState!.validate()) {
+                        print(
+                          'FORGOT PASSWORD BUTTON PRESSED: ${emailController.text.trim()}',
+                        );
+
                         context.read<AuthCubit>().forgotPassword(
-                              email: emailController.text.trim(),
-                            );
+                          email: emailController.text.trim(),
+                        );
                       }
                     },
                   ),
