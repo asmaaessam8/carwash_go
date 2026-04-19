@@ -6,17 +6,18 @@ version: 1.0.0+1
 
 environment:
   sdk: ^3.7.0
+
 dependencies:
   flutter:
     sdk: flutter
-
   flutter_bloc: ^8.1.6
   cupertino_icons: ^1.0.8
   lottie: ^2.7.0
   firebase_core: ^4.7.0
   firebase_auth: ^6.4.0
   cloud_firestore: ^6.0.0
-
+  google_sign_in: 6.2.1
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -29,3 +30,8 @@ flutter:
     - assets/images/car_wash.jpg
     - assets/images/logo.png
     - assets/animations/car_wash.json
+
+  fonts:
+    - family: CormorantGaramond
+      fonts:
+        - asset: assets/fonts/CormorantGaramond-Regular.ttf
