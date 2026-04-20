@@ -30,7 +30,12 @@ flutter:
     - assets/images/welcome_car.png
     - assets/images/logo.png
     - assets/animations/car_wash.json
-
+    - assets/images/package_6.png
+    - assets/images/package_12.jpeg
+    - assets/images/service_wash.jpeg
+    - assets/images/service_interior.jpeg
+    - assets/images/service_cleaning.jpeg
+    - assets/images/service_addons.jpeg
   fonts:
     - family: CormorantGaramond
       fonts:
