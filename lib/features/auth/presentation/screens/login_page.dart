@@ -1,16 +1,10 @@
-
-
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../../core/routes/routes.dart';
-import '../../../../core/utils/validators.dart';
-import '../cubit/auth_cubit.dart';
-import '../cubit/auth_state.dart';
-import '../widgets/auth_background.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/google_button.dart';
+import '../widgets/top_wave.dart';
+import 'welcome_page.dart';
+import 'forgot_password_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -22,123 +16,169 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final formKey = GlobalKey<FormState>();
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
+  bool obscure = true;
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthCubit, AuthState>(
-      listener: (context, state) {
-        if (state is AuthSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F8FC),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // 🔵 التمويجة
+            Stack(
+              children: [
+                const TopWave(),
 
-          Navigator.pushReplacementNamed(context, AppRoutes.home);
-        }
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back,
+                        color: Colors.blue),
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const WelcomePage(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
 
-        if (state is AuthError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-        }
-      },
-      builder: (context, state) {
-        final isLoading = state is AuthLoading;
+            // 🧾 المحتوى
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
 
-        return AuthBackground(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
-            child: Form(
-              key: formKey,
-              child: Column(
-                children: [
-                  const SizedBox(height: 180),
-                  const Text(
-                    'Welcome Back!',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  CustomTextField(
-                    hintText: 'Email*',
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: AppValidators.email,
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    hintText: 'Password*',
-                    controller: passwordController,
-                    obscureText: true,
-                    validator: AppValidators.password,
-                  ),
-                  const SizedBox(height: 10),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
+                    const Text(
+                      'تسجيل الدخول',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1A1A1A),
                       ),
-                      onPressed: () {
-                        Navigator.pushNamed(
-                          context,
-                          AppRoutes.forgotPassword,
-                        );
-                      },
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    // 📧 Email
+                    CustomTextField(
+                      hintText: 'البريد الإلكتروني',
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // 🔒 Password
+                    TextField(
+                      controller: passwordController,
+                      obscureText: obscure,
+                      decoration: InputDecoration(
+                        hintText: 'كلمة المرور',
+                        prefixIcon:
+                            const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            obscure
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              obscure = !obscure;
+                            });
+                          },
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding:
+                            const EdgeInsets.symmetric(
+                                vertical: 18),
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE4E7F2),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE4E7F2),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  CustomButton(
-                    text: isLoading ? 'Loading...' : 'Sign In',
-                    onPressed: () {
-                      if (formKey.currentState!.validate()) {
-                        context.read<AuthCubit>().login(
-                              email: emailController.text.trim(),
-                              password: passwordController.text.trim(),
-                            );
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.register);
-                    },
-                    child: const Text(
-                      'Don’t have an account? Sign Up',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
+
+                    const SizedBox(height: 20),
+
+                    // 🔵 زر تسجيل الدخول
+                    CustomButton(
+                      text: 'تسجيل الدخول',
+                      onPressed: () {},
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // 🔗 نسيت كلمة المرور
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const ForgotPasswordPage(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'نسيت كلمة المرور؟',
+                        style: TextStyle(
+                          color: Color(0xFF3D5CFF),
+                          fontSize: 15,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  GoogleButton(
-                    onPressed: () {},
-                  ),
-                ],
+
+                    const SizedBox(height: 20),
+
+                    // ➖ خط + نص
+                    Row(
+                      children: const [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 10),
+                          child: Text('أو'),
+                        ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // 🟢 Google Button
+                    GoogleButton(
+                      onPressed: () {},
+                    ),
+
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }

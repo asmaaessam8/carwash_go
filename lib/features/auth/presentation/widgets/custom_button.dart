@@ -16,22 +16,54 @@ class CustomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isPrimary ? const Color(0xFF0D2BFF) : Colors.white,
-          foregroundColor: isPrimary ? Colors.white : Colors.black87,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+      height: 58,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: isPrimary
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF1F57FF),
+                    Color(0xFF003BFF),
+                  ],
+                )
+              : null,
+          color: isPrimary ? null : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: isPrimary
+              ? null
+              : Border.all(
+                  color: const Color(0xFFE6E9F2),
+                  width: 1.4,
+                ),
+          boxShadow: isPrimary
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF1450FF).withOpacity(0.22),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : [],
         ),
-        onPressed: onPressed,
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: isPrimary ? Colors.white : const Color(0xFF2B4FC7),
+            ),
           ),
         ),
       ),

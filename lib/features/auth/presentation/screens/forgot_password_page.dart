@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../../core/routes/routes.dart';
-import '../../../../core/utils/validators.dart';
-import '../cubit/auth_cubit.dart';
-import '../cubit/auth_state.dart';
-import '../widgets/auth_background.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
+import '../widgets/top_wave.dart';
+import 'login_page.dart';
+import 'welcome_page.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -18,7 +14,6 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final emailController = TextEditingController();
-  final formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -28,77 +23,103 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthCubit, AuthState>(
-      listener: (context, state) {
-        print('FORGOT PASSWORD PAGE STATE: $state');
-
-        if (state is AuthSuccess) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
-
-          Navigator.pushReplacementNamed(context, AppRoutes.login);
-        }
-
-        if (state is AuthError) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
-        }
-      },
-      builder: (context, state) {
-        final isLoading = state is AuthLoading;
-
-        return AuthBackground(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
-            child: Form(
-              key: formKey,
-              child: Column(
-                children: [
-                  const SizedBox(height: 220),
-                  const Text(
-                    'Forgot Password',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w500,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F8FC),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                const TopWave(),
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Color(0xFF1450FF),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Enter your email to reset password',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                  const SizedBox(height: 28),
-                  CustomTextField(
-                    hintText: 'Email',
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: AppValidators.email,
-                  ),
-                  const SizedBox(height: 20),
-                  CustomButton(
-                    text: isLoading ? 'Loading...' : 'Send Reset Link',
                     onPressed: () {
-                      if (formKey.currentState!.validate()) {
-                        print(
-                          'FORGOT PASSWORD BUTTON PRESSED: ${emailController.text.trim()}',
-                        );
-
-                        context.read<AuthCubit>().forgotPassword(
-                          email: emailController.text.trim(),
-                        );
-                      }
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const WelcomePage(),
+                        ),
+                      );
                     },
                   ),
-                ],
+                ),
+              ],
+            ),
+
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 8),
+
+                    const Text(
+                      'نسيت كلمة المرور',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF151B4A),
+                      ),
+                    ),
+
+                    const SizedBox(height: 22),
+
+                    const Text(
+                      'أدخلي البريد الإلكتروني لإرسال رابط إعادة التعيين',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF8B90A3),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    CustomTextField(
+                      hintText: 'البريد الإلكتروني',
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+
+                    const SizedBox(height: 22),
+
+                    CustomButton(
+                      text: 'إرسال رابط إعادة التعيين',
+                      onPressed: () {
+                        // TODO: forgot password logic
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    CustomButton(
+                      text: 'العودة إلى تسجيل الدخول',
+                      isPrimary: false,
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LoginPage(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }
