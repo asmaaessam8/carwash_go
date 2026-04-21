@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class ServicesRow extends StatelessWidget {
-  const ServicesRow({super.key});
+class CategoriesWidget extends StatelessWidget {
+  const CategoriesWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,21 +21,33 @@ class ServicesRow extends StatelessWidget {
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _Item(title: 'غسيل خارجي', icon: Icons.local_car_wash),
-          _Item(title: 'تنظيف داخلي', icon: Icons.cleaning_services),
-          _Item(title: 'تلميع داخلي', icon: Icons.auto_fix_high),
-          _Item(title: 'إضافات', icon: Icons.add_box_outlined),
+          _CategoryItem(
+            title: 'غسيل خارجي',
+            icon: Icons.local_car_wash,
+          ),
+          _CategoryItem(
+            title: 'تنظيف داخلي',
+            icon: Icons.cleaning_services,
+          ),
+          _CategoryItem(
+            title: 'تلميع داخلي',
+            icon: Icons.auto_fix_high,
+          ),
+          _CategoryItem(
+            title: 'إضافات',
+            icon: Icons.add_box_outlined,
+          ),
         ],
       ),
     );
   }
 }
 
-class _Item extends StatelessWidget {
+class _CategoryItem extends StatelessWidget {
   final String title;
   final IconData icon;
 
-  const _Item({
+  const _CategoryItem({
     required this.title,
     required this.icon,
   });
@@ -49,7 +61,7 @@ class _Item extends StatelessWidget {
           backgroundColor: const Color(0xFFE9EEFF),
           child: Icon(
             icon,
-            color: Color(0xFF0D2BFF),
+            color: const Color(0xFF0D2BFF),
             size: 24,
           ),
         ),

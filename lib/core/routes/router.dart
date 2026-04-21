@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../features/auth/presentation/screens/forgot_password_page.dart';
-import '../../features/auth/presentation/screens/home_page.dart';
+import '../../features/home/presentation/screens/home_page.dart';
 import '../../features/auth/presentation/screens/login_page.dart';
 import '../../features/auth/presentation/screens/register_page.dart';
 import '../../features/auth/presentation/screens/splash_page.dart';

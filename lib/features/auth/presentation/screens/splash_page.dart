@@ -27,30 +27,21 @@ class _SplashPageState extends State<SplashPage>
       duration: const Duration(milliseconds: 2200),
     );
 
-    _logoFadeAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(
+    _logoFadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.45, curve: Curves.easeIn),
       ),
     );
 
-    _logoSlideAnimation = Tween<double>(
-      begin: -30,
-      end: 0,
-    ).animate(
+    _logoSlideAnimation = Tween<double>(begin: -30, end: 0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
       ),
     );
 
-    _lottieFadeAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(
+    _lottieFadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.35, 1.0, curve: Curves.easeIn),
@@ -73,100 +64,91 @@ class _SplashPageState extends State<SplashPage>
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    final logoSize = size.width < 600 ? size.width * 0.38 : 190.0;
+    final lottieHeight = size.width < 600 ? size.height * 0.22 : 180.0;
+
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color.fromARGB(255, 255, 255, 255),
-              Color.fromARGB(255, 255, 255, 255),
-              Color.fromARGB(255, 255, 255, 255),
-            ],
-            stops: [0.0, 0.58, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: AnimatedBuilder(
-            animation: _animationController,
-            builder: (context, child) {
-              return Column(
-                children: [
-                  const Spacer(flex: 2),
-
-                  Opacity(
-                    opacity: _logoFadeAnimation.value,
-                    child: Transform.translate(
-                      offset: Offset(0, _logoSlideAnimation.value),
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'assets/images/logo.png',
-                            width: 150,
-                            height: 150,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'CAR WASH',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 8, 0, 255),
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 2,
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Opacity(
+                      opacity: _logoFadeAnimation.value,
+                      child: Transform.translate(
+                        offset: Offset(0, _logoSlideAnimation.value),
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/images/logo.png',
+                              width: logoSize,
+                              height: logoSize,
+                              fit: BoxFit.contain,
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'Clean • Shine • Go',
-                            style: TextStyle(
-                              color: Color.fromARGB(179, 21, 0, 255),
-                              fontSize: 14,
-                              letterSpacing: 1.2,
+                            const SizedBox(height: 12),
+                            Text(
+                              'غسيل سيارات',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(
+                                    color: const Color(0xFF0800FF),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  Opacity(
-                    opacity: _lottieFadeAnimation.value,
-                    child: SizedBox(
-                      height: 220,
-                      width: 300,
-                      child: Lottie.asset(
-                        'assets/animations/car_wash.json',
-                        fit: BoxFit.contain,
-                        repeat: true,
-                      ),
-                    ),
-                  ),
-
-                  const Spacer(flex: 2),
-
-                  Opacity(
-                    opacity: _lottieFadeAnimation.value,
-                    child: const Padding(
-                      padding: EdgeInsets.only(bottom: 26),
-                      child: Text(
-                        'Loading...',
-                        style: TextStyle(
-                          color: Color.fromARGB(179, 0, 13, 255),
-                          fontSize: 15,
+                            const SizedBox(height: 6),
+                            Text(
+                              'نظافة • تلميع • سرعة',
+                              style:
+                                  Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: const Color.fromARGB(
+                                          179,
+                                          21,
+                                          0,
+                                          255,
+                                        ),
+                                      ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            },
-          ),
+                    const SizedBox(height: 28),
+                    Opacity(
+                      opacity: _lottieFadeAnimation.value,
+                      child: SizedBox(
+                        height: lottieHeight,
+                        width: size.width < 600 ? size.width * 0.65 : 260,
+                        child: Lottie.asset(
+                          'assets/animations/car_wash.json',
+                          fit: BoxFit.contain,
+                          repeat: true,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Opacity(
+                      opacity: _lottieFadeAnimation.value,
+                      child: Text(
+                        'جاري التحميل...',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: const Color.fromARGB(179, 0, 13, 255),
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

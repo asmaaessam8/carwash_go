@@ -57,94 +57,100 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         return Scaffold(
           backgroundColor: const Color(0xFFF7F8FC),
           body: SafeArea(
-            child: Column(
-              children: [
-                Stack(
-                  children: [
-                    const TopWave(),
-                    Positioned(
-                      top: 10,
-                      left: 10,
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back,
-                          color: Color(0xFF1450FF),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      children: [
+                        Stack(
+                          children: [
+                            const TopWave(),
+                            Positioned(
+                              top: 10,
+                              left: 10,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: Color(0xFF1450FF),
+                                ),
+                                onPressed: () {
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    AppRoutes.login,
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(
-                            context,
-                            AppRoutes.login,
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Form(
-                      key: formKey,
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 10),
-                          const Text(
-                            'نسيت كلمة المرور',
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF151B4A),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'أدخلي البريد الإلكتروني لإرسال رابط إعادة التعيين',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF8B90A3),
-                            ),
-                          ),
-                          const SizedBox(height: 28),
-                          CustomTextField(
-                            hintText: 'البريد الإلكتروني',
-                            controller: emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            validator: _emailValidator,
-                          ),
-                          const SizedBox(height: 20),
-                          CustomButton(
-                            text: isLoading
-                                ? 'جاري الإرسال...'
-                                : 'إرسال رابط إعادة التعيين',
-                            onPressed: () {
-                              if (isLoading) return;
-
-                              if (formKey.currentState!.validate()) {
-                                context.read<AuthCubit>().forgotPassword(
-                                      email: emailController.text.trim(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Form(
+                            key: formKey,
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 10),
+                                const Text(
+                                  'نسيت كلمة المرور',
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF151B4A),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'أدخلي البريد الإلكتروني لإرسال رابط إعادة التعيين',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xFF8B90A3),
+                                  ),
+                                ),
+                                const SizedBox(height: 28),
+                                CustomTextField(
+                                  hintText: 'البريد الإلكتروني',
+                                  controller: emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: _emailValidator,
+                                ),
+                                const SizedBox(height: 20),
+                                CustomButton(
+                                  text: isLoading
+                                      ? 'جاري الإرسال...'
+                                      : 'إرسال رابط إعادة التعيين',
+                                  onPressed: () {
+                                    if (isLoading) return;
+                                    if (formKey.currentState!.validate()) {
+                                      context.read<AuthCubit>().forgotPassword(
+                                            email: emailController.text.trim(),
+                                          );
+                                    }
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                CustomButton(
+                                  text: 'العودة إلى تسجيل الدخول',
+                                  isPrimary: false,
+                                  onPressed: () {
+                                    Navigator.pushReplacementNamed(
+                                      context,
+                                      AppRoutes.login,
                                     );
-                              }
-                            },
+                                  },
+                                ),
+                                const SizedBox(height: 28),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 16),
-                          CustomButton(
-                            text: 'العودة إلى تسجيل الدخول',
-                            isPrimary: false,
-                            onPressed: () {
-                              Navigator.pushReplacementNamed(
-                                context,
-                                AppRoutes.login,
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 30),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
         );
