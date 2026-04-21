@@ -12,7 +12,20 @@
           "package_name": "com.noon.carwash_go"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "679309022789-7apbr6qn9e512kii3d683sb390l9hq7o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.noon.carwash_go",
+            "certificate_hash": "6f174bf43e172b654109f125f9fd1aeead08a9e0"
+          }
+        },
+        {
+          "client_id": "679309022789-lpnbncn6mfq0lcum1j27qhg28tfom88t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyApvIGbOQF8N3MOYk5mo-CLx8I9DzJgulQ"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "679309022789-lpnbncn6mfq0lcum1j27qhg28tfom88t.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "679309022789-i5g28a70jtthk0l5lubu04gua9nvn48g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.noon.carwashGo"
+              }
+            }
+          ]
         }
       }
     }

@@ -9,21 +9,9 @@ class AuthCubit extends Cubit<AuthState> {
   AuthCubit() : super(AuthInitial());
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  bool _googleInitialized = false;
-
-  Future<void> _initGoogleSignIn() async {
-    if (_googleInitialized) return;
-
-    await _googleSignIn.initialize();
-    _googleInitialized = true;
-  }
-
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> login({required String email, required String password}) async {
     emit(AuthLoading());
 
     try {
@@ -64,14 +52,17 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> forgotPassword({
-    required String email,
-  }) async {
+  Future<void> forgotPassword({required String email}) async {
     emit(AuthLoading());
 
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
-      emit(ResetPasswordSuccess('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني'));
+
+      emit(
+        ResetPasswordSuccess(
+          'تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني',
+        ),
+      );
     } on FirebaseAuthException catch (e) {
       emit(AuthError(e.message ?? 'فشل إرسال رابط إعادة التعيين'));
     } catch (_) {
@@ -83,8 +74,6 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
 
     try {
-      await _initGoogleSignIn();
-
       if (kIsWeb) {
         final googleProvider = GoogleAuthProvider();
         await _firebaseAuth.signInWithPopup(googleProvider);
@@ -92,42 +81,30 @@ class AuthCubit extends Cubit<AuthState> {
         return;
       }
 
-      final GoogleSignInAccount googleUser =
-          await _googleSignIn.authenticate();
+      await _googleSignIn.signOut();
 
-      final GoogleSignInAuthentication googleAuth =
-          googleUser.authentication;
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
-      final String? idToken = googleAuth.idToken;
-
-      if (idToken == null) {
-        emit(AuthError('تعذر الحصول على Google ID Token'));
+      if (googleUser == null) {
+        emit(AuthError('تم إلغاء تسجيل الدخول عبر Google'));
         return;
       }
 
-      final credential = GoogleAuthProvider.credential(
-        idToken: idToken,
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
       );
 
       await _firebaseAuth.signInWithCredential(credential);
 
       emit(GoogleSignInSuccess('تم تسجيل الدخول عبر Google'));
-    } on GoogleSignInException catch (e) {
-      emit(AuthError('فشل تسجيل الدخول عبر Google: ${e.code.name}'));
     } on FirebaseAuthException catch (e) {
       emit(AuthError(e.message ?? 'فشل تسجيل الدخول عبر Google'));
     } catch (e) {
-      emit(AuthError('فشل تسجيل الدخول عبر Google'));
-    }
-  }
-
-  Future<void> signOut() async {
-    try {
-      await _firebaseAuth.signOut();
-      await _googleSignIn.signOut();
-      emit(AuthInitial());
-    } catch (_) {
-      emit(AuthError('فشل تسجيل الخروج'));
+      emit(AuthError('فشل تسجيل الدخول عبر Google: $e'));
     }
   }
 
