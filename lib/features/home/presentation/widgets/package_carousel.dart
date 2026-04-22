@@ -28,7 +28,7 @@ class _PackageCarouselState extends State<PackageCarousel> {
       'count': '12 غسلة',
       'price': '520 ريال',
       'oldPrice': '610',
-      'image': 'assets/images/package_12.jpeg',
+      'image': 'assets/images/package_12.png',
     },
   ];
 
