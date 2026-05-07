@@ -46,7 +46,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/keys/service_account.json
+    - assets/keys/service_accpunt.json
     - assets/images/welcome_car.png
     - assets/images/logo.png
     - assets/animations/car_wash.json
