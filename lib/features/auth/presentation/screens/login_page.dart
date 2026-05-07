@@ -1,0 +1,277 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../core/routes/routes.dart';
+import '../../../admin/presentation/screens/admin_dashboard_page.dart';
+import '../../../worker/presentation/screens/worker_orders_page.dart';
+import '../cubit/auth_cubit.dart';
+import '../cubit/auth_state.dart';
+import '../widgets/custom_button.dart';
+import '../widgets/custom_text_field.dart';
+import '../widgets/google_button.dart';
+import '../widgets/top_wave.dart';
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final formKey = GlobalKey<FormState>();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  bool obscurePassword = true;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  String? _emailValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'أدخل البريد الإلكتروني';
+    }
+    if (!value.contains('@')) {
+      return 'أدخل بريدًا إلكترونيًا صحيحًا';
+    }
+    return null;
+  }
+
+  String? _passwordValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'أدخل كلمة المرور';
+    }
+    if (value.trim().length < 6) {
+      return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+    }
+    return null;
+  }
+
+  Future<void> _goAfterLogin(BuildContext context, String message) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+
+    final role = await context.read<AuthCubit>().getCurrentUserRole();
+
+    if (!context.mounted) return;
+
+    if (role == 'admin') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const AdminDashboardPage(),
+        ),
+      );
+    } else if (role == 'worker') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const WorkerOrdersPage(),
+        ),
+      );
+    } else {
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<AuthCubit, AuthState>(
+      listener: (context, state) async {
+        if (state is LoginSuccess) {
+          await _goAfterLogin(context, state.message);
+        }
+
+        if (state is GoogleSignInSuccess) {
+          await _goAfterLogin(context, state.message);
+        }
+
+        if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is AuthLoading;
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF7F8FC),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      children: [
+                        Stack(
+                          children: [
+                            const TopWave(),
+                            Positioned(
+                              top: 10,
+                              left: 10,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: Color(0xFF1450FF),
+                                ),
+                                onPressed: () {
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    AppRoutes.welcome,
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Form(
+                            key: formKey,
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 10),
+                                const Text(
+                                  'تسجيل الدخول',
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF151B4A),
+                                  ),
+                                ),
+                                const SizedBox(height: 28),
+                                CustomTextField(
+                                  hintText: 'البريد الإلكتروني',
+                                  controller: emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: _emailValidator,
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: passwordController,
+                                  obscureText: obscurePassword,
+                                  validator: _passwordValidator,
+                                  decoration: InputDecoration(
+                                    hintText: 'كلمة المرور',
+                                    prefixIcon: const Icon(Icons.lock_outline),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        obscurePassword
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          obscurePassword = !obscurePassword;
+                                        });
+                                      },
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 18,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE4E7F2),
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE4E7F2),
+                                      ),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                CustomButton(
+                                  text: isLoading
+                                      ? 'جاري تسجيل الدخول...'
+                                      : 'تسجيل الدخول',
+                                  onPressed: () {
+                                    if (isLoading) return;
+                                    if (formKey.currentState!.validate()) {
+                                      context.read<AuthCubit>().login(
+                                            email: emailController.text.trim(),
+                                            password:
+                                                passwordController.text.trim(),
+                                          );
+                                    }
+                                  },
+                                ),
+                                const SizedBox(height: 14),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.forgotPassword,
+                                    );
+                                  },
+                                  child: const Text(
+                                    'نسيت كلمة المرور؟',
+                                    style: TextStyle(
+                                      color: Color(0xFF3D5CFF),
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: const [
+                                    Expanded(child: Divider()),
+                                    Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 10),
+                                      child: Text('أو'),
+                                    ),
+                                    Expanded(child: Divider()),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                GoogleButton(
+                                  onPressed: () {
+                                    if (isLoading) return;
+                                    context
+                                        .read<AuthCubit>()
+                                        .signInWithGoogle();
+                                  },
+                                ),
+                                const SizedBox(height: 28),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

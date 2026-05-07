@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "679309022789",
+    "project_id": "carwash-go-a8adc",
+    "storage_bucket": "carwash-go-a8adc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:679309022789:android:854d9604d69351f1bbb52c",
+        "android_client_info": {
+          "package_name": "com.noon.carwash_go"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "679309022789-ofueqlrs1rpbunoiojs16u5c1kf82sjg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.noon.carwash_go",
+            "certificate_hash": "6f174bf43e172b654109f125f9fd1aeead08a9ed"
+          }
+        },
+        {
+          "client_id": "679309022789-lpnbncn6mfq0lcum1j27qhg28tfom88t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApvIGbOQF8N3MOYk5mo-CLx8I9DzJgulQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "679309022789-lpnbncn6mfq0lcum1j27qhg28tfom88t.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "679309022789-i5g28a70jtthk0l5lubu04gua9nvn48g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.noon.carwashGo"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
