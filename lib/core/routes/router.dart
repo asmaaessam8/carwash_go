@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+
 import '../../features/auth/presentation/screens/forgot_password_page.dart';
 import '../../features/home/presentation/screens/home_page.dart';
 import '../../features/auth/presentation/screens/login_page.dart';
 import '../../features/auth/presentation/screens/register_page.dart';
 import '../../features/auth/presentation/screens/splash_page.dart';
 import '../../features/auth/presentation/screens/welcome_page.dart';
+import '../../features/worker/presentation/screens/worker_orders_page.dart';
+
 import 'routes.dart';
 
 class AppRouter {
@@ -28,11 +31,14 @@ class AppRouter {
       case AppRoutes.home:
         return MaterialPageRoute(builder: (_) => const HomePage());
 
+      case AppRoutes.workerOrders:
+        return MaterialPageRoute(builder: (_) => const WorkerOrdersPage());
+
       default:
         return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(child: Text('Page not found')),
-          ),
+          builder:
+              (_) =>
+                  const Scaffold(body: Center(child: Text('Page not found'))),
         );
     }
   }

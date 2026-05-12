@@ -1,10 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import 'admin_bookings_page.dart';
 import 'admin_categories_page.dart';
 import 'admin_products_page.dart';
-import 'admin_bookings_page.dart';
 import 'admin_users_page.dart';
-
+import 'admin_ratings_page.dart';
 
 class AdminDashboardPage extends StatelessWidget {
   const AdminDashboardPage({super.key});
@@ -18,6 +19,55 @@ class AdminDashboardPage extends StatelessWidget {
         backgroundColor: const Color(0xFF1670FF),
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
+        actions: [
+          StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            stream:
+                FirebaseFirestore.instance
+                    .collection('bookings')
+                    .where('status', isEqualTo: 'مؤكد')
+                    .snapshots(),
+            builder: (context, snapshot) {
+              final count = snapshot.data?.docs.length ?? 0;
+
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_rounded),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AdminBookingsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  if (count > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),
@@ -38,10 +88,7 @@ class AdminDashboardPage extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: Text(
               'يمكنك إدارة الخدمات، المستخدمين، والحجوزات من هنا',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF5F677B),
-              ),
+              style: TextStyle(fontSize: 14, color: Color(0xFF5F677B)),
             ),
           ),
           const SizedBox(height: 22),
@@ -102,7 +149,19 @@ class AdminDashboardPage extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          
+          _AdminCard(
+            title: 'تقييمات المستخدمين',
+            subtitle: 'عرض تقييمات وتعليقات المستخدمين على الخدمة',
+            icon: Icons.star_rate_rounded,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminRatingsPage()),
+              );
+            },
+          ),
+
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -184,11 +243,7 @@ class _AdminCard extends StatelessWidget {
                 color: const Color(0xFFEAF2FF),
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: Icon(
-                icon,
-                color: const Color(0xFF1670FF),
-                size: 30,
-              ),
+              child: Icon(icon, color: const Color(0xFF1670FF), size: 30),
             ),
           ],
         ),

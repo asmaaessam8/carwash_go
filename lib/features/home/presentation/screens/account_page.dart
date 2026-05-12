@@ -1,11 +1,18 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
-import '../../../../core/routes/routes.dart';
+import 'package:carwash_go/core/theme/theme_notifier.dart';
+
+import '../../../auth/presentation/screens/login_page.dart';
+import 'edit_profile_page.dart';
 import 'my_programs_page.dart';
 import 'notifications_page.dart';
 import 'payments_page.dart';
+import 'rating_page.dart';
 import 'saved_addresses_page.dart';
 import 'support_page.dart';
 
@@ -22,14 +29,15 @@ class _AccountPageState extends State<AccountPage> {
   String name = "مستخدم";
   String phone = "";
   String email = "";
+  String photoPath = "";
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    loadUserData();
   }
 
-  Future<void> _loadUserData() async {
+  Future<void> loadUserData() async {
     if (user == null) return;
 
     final doc = await FirebaseFirestore.instance
@@ -40,452 +48,328 @@ class _AccountPageState extends State<AccountPage> {
     if (!mounted) return;
 
     if (doc.exists) {
-      final data = doc.data()!;
+      final data = doc.data();
+
       setState(() {
-        name = data['name'] ?? user!.displayName ?? 'مستخدم';
-        phone = data['phone'] ?? '';
-        email = data['email'] ?? user!.email ?? '';
-      });
-    } else {
-      setState(() {
-        name = user!.displayName ?? 'مستخدم';
-        email = user!.email ?? '';
+        name =
+            data?['name'] ?? user!.displayName ?? "مستخدم";
+
+        phone = data?['phone'] ?? "";
+
+        email = data?['email'] ?? user!.email ?? "";
+
+        photoPath = data?['photoPath'] ?? "";
       });
     }
   }
 
-  Future<void> _logout() async {
+  Future<void> openEditProfile() async {
+    final updated = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const EditProfilePage(),
+      ),
+    );
+
+    if (updated == true) {
+      loadUserData();
+    }
+  }
+
+  Future<void> logout() async {
+    await GoogleSignIn().signOut();
+
     await FirebaseAuth.instance.signOut();
 
     if (!mounted) return;
 
-    Navigator.pushNamedAndRemoveUntil(
+    Navigator.pushAndRemoveUntil(
       context,
-      AppRoutes.login,
+      MaterialPageRoute(
+        builder: (_) => const LoginPage(),
+      ),
       (route) => false,
     );
   }
 
-  void _handleItemTap(String title, {bool isLogout = false}) {
-    if (isLogout) {
-      _logout();
-      return;
+  ImageProvider? profileImage() {
+    if (photoPath.isNotEmpty &&
+        File(photoPath).existsSync()) {
+      return FileImage(File(photoPath));
     }
 
-    if (title == 'التنبيهات') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const NotificationsPage()),
-      );
-    } else if (title == 'المدفوعات') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const PaymentsPage()),
-      );
-    } else if (title == 'العناوين المحفوظة') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const SavedAddressesPage()),
-      );
-    } else if (title == 'برامجي') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const MyProgramsPage()),
-      );
-    } else if (title == 'الدعم والمساعدة') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const SupportPage()),
-      );
-    }
-  }
-
-  Future<void> _saveUserData({
-    required String newName,
-    required String newPhone,
-    required String newEmail,
-  }) async {
-    if (user == null) return;
-
-    await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
-      'name': newName,
-      'phone': newPhone,
-      'email': newEmail,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-
-    await user!.updateDisplayName(newName);
-
-    if (!mounted) return;
-
-    setState(() {
-      name = newName;
-      phone = newPhone;
-      email = newEmail;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم حفظ التعديلات')),
-    );
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(18, 16, 18, 28),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF0D6BFF), Color(0xFF5B8DFF)],
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(28),
-                  bottomRight: Radius.circular(28),
-                ),
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(
-                      Icons.arrow_back_rounded,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const Spacer(),
-                  const Text(
-                    "الحساب",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.22),
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: const Icon(
-                      Icons.person_rounded,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (context, themeMode, _) {
+        final isDark = themeMode == ThemeMode.dark;
 
-            const SizedBox(height: 18),
+        return Scaffold(
+          backgroundColor:
+              isDark ? Colors.black : const Color(0xFFF7F8FC),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: _cardDecoration(),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      radius: 38,
-                      backgroundColor: Color(0xFFEAF2FF),
-                      child: Icon(
-                        Icons.person_rounded,
-                        size: 44,
-                        color: Color(0xFF1670FF),
-                      ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.fromLTRB(22, 28, 22, 26),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color(0xFF5B8CFF),
+                        Color(0xFF0D6BFF),
+                      ],
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(34),
+                      bottomRight: Radius.circular(34),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
                         children: [
-                          Text(
-                            name,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF151B4A),
+                          IconButton(
+                            onPressed: () =>
+                                Navigator.pop(context),
+                            icon: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 5),
-                          Text(
-                            phone.isEmpty ? email : phone,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF6C7488),
+
+                          const Spacer(),
+
+                          const Text(
+                            "الحساب",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
                             ),
+                          ),
+
+                          const SizedBox(width: 14),
+
+                          CircleAvatar(
+                            radius: 32,
+                            backgroundColor: Colors.white24,
+                            backgroundImage: profileImage(),
+                            child: profileImage() == null
+                                ? const Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                    size: 34,
+                                  )
+                                : null,
                           ),
                         ],
                       ),
-                    ),
-                    SizedBox(
-                      height: 42,
-                      child: ElevatedButton.icon(
-                        onPressed: _showEditAccountSheet,
-                        icon: const Icon(Icons.edit_rounded, size: 18),
-                        label: const Text("تعديل"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0D6BFF),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
+
+                      const SizedBox(height: 24),
+
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.18),
+                          borderRadius:
+                              BorderRadius.circular(22),
+                        ),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: openEditProfile,
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius:
+                                      BorderRadius.circular(16),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.edit,
+                                      color: Color(0xFF0D6BFF),
+                                      size: 18,
+                                    ),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      "تعديل",
+                                      style: TextStyle(
+                                        color:
+                                            Color(0xFF0D6BFF),
+                                        fontWeight:
+                                            FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(width: 12),
+
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    name,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight:
+                                          FontWeight.bold,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 6),
+
+                                  Text(
+                                    email,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+
+                                  if (phone.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+
+                                    Text(
+                                      phone,
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 18),
-
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                children: [
-                  _accountItem(Icons.notifications_rounded, "التنبيهات"),
-                  _accountItem(Icons.credit_card_rounded, "المدفوعات"),
-                  _accountItem(Icons.location_on_rounded, "العناوين المحفوظة"),
-                  _accountItem(Icons.verified_user_rounded, "برامجي"),
-                  _accountItem(Icons.help_rounded, "الدعم والمساعدة"),
-                  _accountItem(
-                    Icons.logout_rounded,
-                    "تسجيل الخروج",
-                    isLogout: true,
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  BoxDecoration _cardDecoration() {
-    return BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(24),
-      border: Border.all(color: const Color(0xFFE8EDFF)),
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xFF9DB5FF).withOpacity(0.14),
-          blurRadius: 18,
-          offset: const Offset(0, 8),
-        ),
-      ],
-    );
-  }
-
-  Widget _accountItem(IconData icon, String title, {bool isLogout = false}) {
-    return InkWell(
-      onTap: () => _handleItemTap(title, isLogout: isLogout),
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-        decoration: _cardDecoration(),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: isLogout
-                    ? const Color(0xFFFFECEC)
-                    : const Color(0xFFEAF2FF),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                icon,
-                color: isLogout ? Colors.red : const Color(0xFF1670FF),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: isLogout ? Colors.red : const Color(0xFF151B4A),
                 ),
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: isLogout ? Colors.red : const Color(0xFF9AA3B8),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  void _showEditAccountSheet() {
-    final nameController = TextEditingController(text: name);
-    final phoneController = TextEditingController(text: phone);
-    final emailController = TextEditingController(text: email);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(22, 16, 22, 26),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 45,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD8DDEA),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(22),
+                    child: Column(
                       children: [
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(
-                            Icons.close_rounded,
-                            color: Color(0xFF8B95A7),
-                          ),
+                        itemCard(
+                          title: "التنبيهات",
+                          icon: Icons.notifications,
+                          isDark: isDark,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const NotificationsPage(),
+                              ),
+                            );
+                          },
                         ),
-                        const Spacer(),
-                        const Text(
-                          "تعديل الحساب",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF151B4A),
-                          ),
+
+                        itemCard(
+                          title: "المدفوعات",
+                          icon: Icons.credit_card,
+                          isDark: isDark,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const PaymentsPage(),
+                              ),
+                            );
+                          },
                         ),
-                        const Spacer(),
-                        const SizedBox(width: 48),
+
+                        itemCard(
+                          title: "العناوين المحفوظة",
+                          icon: Icons.location_on,
+                          isDark: isDark,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const SavedAddressesPage(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        itemCard(
+                          title: "برامجي",
+                          icon: Icons.verified_user,
+                          isDark: isDark,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const MyProgramsPage(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        itemCard(
+                          title: "التقييمات",
+                          icon: Icons.star_rate_rounded,
+                          isDark: isDark,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const RatingPage(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        itemCard(
+                          title: "الدعم والمساعدة",
+                          icon: Icons.help,
+                          isDark: isDark,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const SupportPage(),
+                              ),
+                            );
+                          },
+                        ),
+
+                        themeCard(isDark),
+
+                        logoutCard(isDark),
                       ],
                     ),
-                    const SizedBox(height: 18),
-                    Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        const CircleAvatar(
-                          radius: 48,
-                          backgroundColor: Color(0xFFEAF2FF),
-                          child: Icon(
-                            Icons.person_rounded,
-                            size: 58,
-                            color: Color(0xFF1670FF),
-                          ),
-                        ),
-                        Container(
-                          width: 34,
-                          height: 34,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0D6BFF),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    _editField(
-                      label: "الاسم",
-                      controller: nameController,
-                      icon: Icons.person_outline_rounded,
-                    ),
-                    const SizedBox(height: 14),
-                    _editField(
-                      label: "رقم الجوال",
-                      controller: phoneController,
-                      icon: Icons.phone_android_rounded,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 14),
-                    _editField(
-                      label: "البريد الإلكتروني",
-                      controller: emailController,
-                      icon: Icons.email_outlined,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          await _saveUserData(
-                            newName: nameController.text.trim(),
-                            newPhone: phoneController.text.trim(),
-                            newEmail: emailController.text.trim(),
-                          );
-
-                          if (!context.mounted) return;
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0D6BFF),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: const Text(
-                          "حفظ التعديلات",
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        "إلغاء",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Color(0xFF1670FF),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         );
@@ -493,35 +377,157 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  Widget _editField({
-    required String label,
-    required TextEditingController controller,
+  Widget itemCard({
+    required String title,
     required IconData icon,
-    TextInputType? keyboardType,
+    required VoidCallback onTap,
+    required bool isDark,
   }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFF8B95A7)),
-        filled: true,
-        fillColor: const Color(0xFFF7F8FC),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color:
+              isDark ? const Color(0xFF1C1C1E) : Colors.white,
+          borderRadius: BorderRadius.circular(22),
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFE1E6F5)),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white12
+                    : const Color(0xFFEAF2FF),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                icon,
+                color: isDark
+                    ? Colors.white
+                    : const Color(0xFF1670FF),
+              ),
+            ),
+
+            const SizedBox(width: 14),
+
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? Colors.white
+                      : const Color(0xFF151B4A),
+                ),
+              ),
+            ),
+
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 18,
+              color: isDark ? Colors.white54 : Colors.grey,
+            ),
+          ],
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFE1E6F5)),
+      ),
+    );
+  }
+
+  Widget themeCard(bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color:
+            isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white12
+                  : const Color(0xFFEAF2FF),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              isDark
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+              color: isDark
+                  ? Colors.white
+                  : const Color(0xFF1670FF),
+            ),
+          ),
+
+          const SizedBox(width: 14),
+
+          Expanded(
+            child: Text(
+              "الوضع الليلي",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark
+                    ? Colors.white
+                    : const Color(0xFF151B4A),
+              ),
+            ),
+          ),
+
+          Switch(
+            value: isDark,
+            onChanged: (value) {
+              saveTheme(value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget logoutCard(bool isDark) {
+    return GestureDetector(
+      onTap: logout,
+      child: Container(
+        width: double.infinity,
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color:
+              isDark ? const Color(0xFF1C1C1E) : Colors.white,
+          borderRadius: BorderRadius.circular(22),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF1670FF), width: 1.3),
+        child: const Row(
+          children: [
+            Icon(
+              Icons.logout_rounded,
+              color: Colors.red,
+            ),
+
+            SizedBox(width: 12),
+
+            Expanded(
+              child: Text(
+                "تسجيل الخروج",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

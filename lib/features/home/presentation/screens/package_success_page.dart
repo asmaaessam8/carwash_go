@@ -14,8 +14,13 @@ class PackageSuccessPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor:
+          isDark ? Colors.black : const Color(0xFFF7F8FC),
+
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -26,7 +31,9 @@ class PackageSuccessPage extends StatelessWidget {
                 width: 110,
                 height: 110,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8FFF2),
+                  color: isDark
+                      ? Colors.white12
+                      : const Color(0xFFE8FFF2),
                   borderRadius: BorderRadius.circular(35),
                 ),
                 child: const Icon(
@@ -35,16 +42,22 @@ class PackageSuccessPage extends StatelessWidget {
                   size: 70,
                 ),
               ),
+
               const SizedBox(height: 28),
-              const Text(
+
+              Text(
                 'تم الاشتراك بنجاح',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF151B4A),
+                  color: isDark
+                      ? Colors.white
+                      : const Color(0xFF151B4A),
                 ),
               ),
+
               const SizedBox(height: 12),
+
               Text(
                 packageTitle,
                 textAlign: TextAlign.center,
@@ -54,16 +67,22 @@ class PackageSuccessPage extends StatelessWidget {
                   color: Color(0xFF1670FF),
                 ),
               ),
+
               const SizedBox(height: 10),
+
               Text(
                 'الغسلات المتبقية: $remainingWashes',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
-                  color: Color(0xFF5F677B),
+                  color: isDark
+                      ? Colors.white70
+                      : const Color(0xFF5F677B),
                   fontWeight: FontWeight.w700,
                 ),
               ),
+
               const SizedBox(height: 30),
+
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -94,7 +113,9 @@ class PackageSuccessPage extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 12),
+
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text(

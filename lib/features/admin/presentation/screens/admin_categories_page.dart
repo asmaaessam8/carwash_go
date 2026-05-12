@@ -13,6 +13,7 @@ class AdminCategoriesPage extends StatelessWidget {
 
     return AdminPermissionWrapper(
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('إدارة التصنيفات'),
           backgroundColor: const Color(0xFF1670FF),
@@ -44,19 +45,27 @@ class AdminCategoriesPage extends StatelessWidget {
                 final name = data['name'] ?? '';
 
                 return Card(
+                  color: Colors.white,
                   child: ListTile(
                     title: Text(name),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          icon: const Icon(
+                            Icons.edit,
+                            color: Colors.blue,
+                          ),
                           onPressed: () =>
                               _editDialog(context, repo, id, name),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteDialog(context, repo, id),
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.red,
+                          ),
+                          onPressed: () =>
+                              _deleteDialog(context, repo, id),
                         ),
                       ],
                     ),
@@ -76,10 +85,15 @@ class AdminCategoriesPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
         title: const Text('إضافة تصنيف'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(labelText: 'اسم التصنيف'),
+          decoration: const InputDecoration(
+            labelText: 'اسم التصنيف',
+            filled: true,
+            fillColor: Colors.white,
+          ),
         ),
         actions: [
           TextButton(
@@ -113,10 +127,15 @@ class AdminCategoriesPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
         title: const Text('تعديل التصنيف'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(labelText: 'اسم التصنيف'),
+          decoration: const InputDecoration(
+            labelText: 'اسم التصنيف',
+            filled: true,
+            fillColor: Colors.white,
+          ),
         ),
         actions: [
           TextButton(
@@ -139,12 +158,19 @@ class AdminCategoriesPage extends StatelessWidget {
     );
   }
 
-  void _deleteDialog(BuildContext context, AdminRepository repo, String id) {
+  void _deleteDialog(
+    BuildContext context,
+    AdminRepository repo,
+    String id,
+  ) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
         title: const Text('تأكيد الحذف'),
-        content: const Text('هل أنت متأكدة من حذف هذا التصنيف؟'),
+        content: const Text(
+          'هل أنت متأكدة من حذف هذا التصنيف؟',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

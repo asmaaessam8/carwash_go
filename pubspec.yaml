@@ -13,17 +13,23 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
-
   # UI
   google_nav_bar: ^5.0.6
   flutter_bloc: ^8.1.6
   lottie: ^2.7.0
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+
+  # Location
+  geolocator: ^11.0.0
+  url_launcher: ^6.2.5
 
   # Firebase
   firebase_core: ^4.7.0
   firebase_messaging: ^16.0.4
   firebase_auth: ^6.4.0
   cloud_firestore: ^6.3.0
+  firebase_storage: ^13.0.4
 
   # Notifications
   googleapis_auth: 1.6.0
@@ -35,6 +41,9 @@ dependencies:
 
   # Images
   image_picker: ^1.1.2
+
+  # Local Storage
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
@@ -56,6 +65,9 @@ flutter:
     - assets/images/service_interior.jpeg
     - assets/images/service_cleaning.jpeg
     - assets/images/service_addons.jpeg
+    - assets/images/jeeb.jpeg
+    - assets/images/floosak.jpeg
+    - assets/images/kuraimi.jpeg
 
   fonts:
     - family: CormorantGaramond

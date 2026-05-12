@@ -6,13 +6,19 @@ class LocalNotificationService {
 
   static Future<void> initialize() async {
     const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@drawable/ic_stat_notify');
 
     const InitializationSettings settings = InitializationSettings(
       android: androidSettings,
     );
 
     await _notificationsPlugin.initialize(settings);
+
+    await _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestNotificationsPermission();
   }
 
   static Future<void> showNotification({
@@ -21,13 +27,15 @@ class LocalNotificationService {
   }) async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'carwash_channel',
-      'CarWash Notifications',
-      channelDescription: 'Notifications for CarWash Go app',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-    );
+          'carwash_high_channel_4',
+          'CarWash High Notifications',
+          channelDescription: 'Important notifications for CarWash Go',
+          importance: Importance.max,
+          priority: Priority.max,
+          icon: 'ic_stat_notify',
+          playSound: true,
+          enableVibration: true,
+        );
 
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,

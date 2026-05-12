@@ -46,6 +46,9 @@ class PackagesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     final packages = [
       {
         'title': 'باقة 12 غسلة',
@@ -66,67 +69,108 @@ class PackagesPage extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor:
+          isDark ? Colors.black : const Color(0xFFF7F8FC),
+
       body: SafeArea(
         child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
+
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.arrow_back_rounded,
-                      color: Color(0xFF1670FF),
+                      color:
+                          isDark
+                              ? Colors.white
+                              : const Color(0xFF1670FF),
                       size: 30,
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
+
                   const Spacer(),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+
+                  Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.end,
+
                     children: [
                       Text(
                         'الباقات',
+
                         style: TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF1560D6),
+
+                          color:
+                              isDark
+                                  ? Colors.white
+                                  : const Color(0xFF1560D6),
                         ),
                       ),
-                      SizedBox(height: 5),
+
+                      const SizedBox(height: 5),
+
                       Text(
                         'اختري باقة غسيل تناسب احتياجاتك',
+
                         style: TextStyle(
                           fontSize: 13,
-                          color: Color(0xFF5F677B),
+
+                          color:
+                              isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF5F677B),
                         ),
                       ),
                     ],
                   ),
+
                   const SizedBox(width: 12),
+
                   Container(
                     width: 54,
                     height: 54,
+
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEAF2FF),
+                      color:
+                          isDark
+                              ? const Color(0xFF1C1C1E)
+                              : const Color(0xFFEAF2FF),
+
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: const Icon(
+
+                    child: Icon(
                       Icons.local_offer_rounded,
-                      color: Color(0xFF1976FF),
+
+                      color:
+                          isDark
+                              ? Colors.white
+                              : const Color(0xFF1976FF),
+
                       size: 30,
                     ),
                   ),
                 ],
               ),
             ),
+
             const SizedBox(height: 10),
+
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+
                 itemCount: packages.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 18),
+
+                separatorBuilder:
+                    (_, __) => const SizedBox(height: 18),
+
                 itemBuilder: (context, index) {
                   final item = packages[index];
 
@@ -178,24 +222,48 @@ class _PackageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 250,
+
       decoration: BoxDecoration(
-        color: Colors.white,
+        color:
+            isDark
+                ? const Color(0xFF1C1C1E)
+                : Colors.white,
+
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: const Color(0xFFE8EDFF)),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF9DB5FF).withOpacity(0.14),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
+
+        border: Border.all(
+          color:
+              isDark
+                  ? Colors.white12
+                  : const Color(0xFFE8EDFF),
+        ),
+
+        boxShadow:
+            isDark
+                ? []
+                : [
+                    BoxShadow(
+                      color: const Color(
+                        0xFF9DB5FF,
+                      ).withOpacity(0.14),
+
+                      blurRadius: 18,
+
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
       ),
+
       child: Stack(
         children: [
           Padding(
             padding: const EdgeInsets.all(14),
+
             child: Column(
               children: [
                 Expanded(
@@ -203,58 +271,117 @@ class _PackageCard extends StatelessWidget {
                     children: [
                       Expanded(
                         flex: 5,
+
                         child: Image.asset(
                           image,
                           height: 135,
                           fit: BoxFit.contain,
                         ),
                       ),
+
                       const SizedBox(width: 10),
+
                       Expanded(
                         flex: 6,
+
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.end,
+
                           children: [
                             const SizedBox(height: 10),
+
                             Text(
                               title,
+
                               textAlign: TextAlign.right,
-                              style: const TextStyle(
+
+                              style: TextStyle(
                                 fontSize: 22,
+
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF151B4A),
+
+                                color:
+                                    isDark
+                                        ? Colors.white
+                                        : const Color(
+                                          0xFF151B4A,
+                                        ),
                               ),
                             ),
+
                             const SizedBox(height: 10),
+
                             Text(
                               description,
+
                               textAlign: TextAlign.right,
-                              style: const TextStyle(
+
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: Color(0xFF5F677B),
+
+                                color:
+                                    isDark
+                                        ? Colors.white70
+                                        : const Color(
+                                          0xFF5F677B,
+                                        ),
+
                                 height: 1.4,
                               ),
                             ),
+
                             const SizedBox(height: 10),
-                            const Divider(color: Color(0xFFE7EAF4)),
+
+                            Divider(
+                              color:
+                                  isDark
+                                      ? Colors.white12
+                                      : const Color(
+                                        0xFFE7EAF4,
+                                      ),
+                            ),
+
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
+                              mainAxisAlignment:
+                                  MainAxisAlignment.end,
+
                               children: [
                                 Text(
                                   price,
-                                  style: const TextStyle(
+
+                                  style: TextStyle(
                                     fontSize: 16,
+
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFF151B4A),
+
+                                    color:
+                                        isDark
+                                            ? Colors.white
+                                            : const Color(
+                                              0xFF151B4A,
+                                            ),
                                   ),
                                 ),
+
                                 const SizedBox(width: 10),
+
                                 Text(
                                   oldPrice,
-                                  style: const TextStyle(
+
+                                  style: TextStyle(
                                     fontSize: 13,
-                                    color: Color(0xFF7D8597),
-                                    decoration: TextDecoration.lineThrough,
+
+                                    color:
+                                        isDark
+                                            ? Colors.white54
+                                            : const Color(
+                                              0xFF7D8597,
+                                            ),
+
+                                    decoration:
+                                        TextDecoration
+                                            .lineThrough,
                                   ),
                                 ),
                               ],
@@ -265,23 +392,34 @@ class _PackageCard extends StatelessWidget {
                     ],
                   ),
                 ),
+
                 Align(
                   alignment: Alignment.centerRight,
+
                   child: SizedBox(
                     height: 42,
                     width: 145,
+
                     child: ElevatedButton(
                       onPressed: onSubscribe,
+
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0D6BFF),
+                        backgroundColor:
+                            const Color(0xFF0D6BFF),
+
                         foregroundColor: Colors.white,
+
                         elevation: 0,
+
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius:
+                              BorderRadius.circular(14),
                         ),
                       ),
+
                       child: const Text(
                         'اشترك الآن',
+
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -293,24 +431,30 @@ class _PackageCard extends StatelessWidget {
               ],
             ),
           ),
+
           if (badge.isNotEmpty)
             Positioned(
               top: 0,
               left: 0,
+
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 18,
                   vertical: 10,
                 ),
+
                 decoration: const BoxDecoration(
                   color: Color(0xFFF8B63F),
+
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(26),
                     bottomRight: Radius.circular(18),
                   ),
                 ),
+
                 child: Text(
                   badge,
+
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,

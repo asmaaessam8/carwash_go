@@ -1,11 +1,83 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../home/data/repositories/notification_repository.dart';
 import '../../data/repositories/worker_repository.dart';
 
 class WorkerOrdersPage extends StatelessWidget {
   const WorkerOrdersPage({super.key});
+
+  bool _isAccepted(String status) {
+    return status.trim() == 'مقبول' || status.trim() == 'طلب مقبول';
+  }
+
+  bool _isInProgress(String status) {
+    return status.trim() == 'قيد الغسيل' || status.trim() == 'قيد التنفيذ';
+  }
+
+  bool _isCompleted(String status) {
+    return status.trim() == 'مكتمل';
+  }
+
+  Future<void> _openMap(
+    BuildContext context,
+    Map<String, dynamic> data,
+  ) async {
+    final mapUrl = data['locationMapUrl']?.toString() ?? '';
+    final location = data['location']?.toString() ?? '';
+
+    if (mapUrl.isEmpty && location.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا يوجد موقع لهذا الطلب')),
+      );
+      return;
+    }
+
+    final url = Uri.parse(
+      mapUrl.isNotEmpty
+          ? mapUrl
+          : 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(location)}',
+    );
+
+    final opened = await launchUrl(
+      url,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!opened) {
+      await launchUrl(
+        url,
+        mode: LaunchMode.platformDefault,
+      );
+    }
+  }
+
+  Future<void> _startOrder(
+    BuildContext context,
+    WorkerRepository repo,
+    String bookingId,
+    Map<String, dynamic> data,
+  ) async {
+    await repo.markAsInProgress(bookingId);
+
+    final userId = data['userId']?.toString() ?? '';
+    final serviceTitle = data['serviceTitle']?.toString() ?? 'خدمة';
+
+    if (userId.isNotEmpty) {
+      await NotificationRepository().notifyWorkerStarted(
+        userId: userId,
+        bookingId: bookingId,
+        serviceTitle: serviceTitle,
+      );
+    }
+
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('تم تحويل الطلب إلى قيد الغسيل')),
+    );
+  }
 
   Future<void> _completeOrder(
     BuildContext context,
@@ -15,10 +87,10 @@ class WorkerOrdersPage extends StatelessWidget {
   ) async {
     await repo.markAsCompleted(bookingId);
 
-    final userId = data['userId'];
-    final serviceTitle = data['serviceTitle'] ?? 'خدمة';
+    final userId = data['userId']?.toString() ?? '';
+    final serviceTitle = data['serviceTitle']?.toString() ?? 'خدمة';
 
-    if (userId != null && userId.toString().isNotEmpty) {
+    if (userId.isNotEmpty) {
       await NotificationRepository().notifyBookingCompleted(
         userId: userId,
         bookingId: bookingId,
@@ -29,8 +101,59 @@ class WorkerOrdersPage extends StatelessWidget {
     if (!context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم تنفيذ الطلب بنجاح'),
+      const SnackBar(content: Text('تم إنهاء الغسيل بنجاح')),
+    );
+  }
+
+  Widget _actionButton({
+    required String text,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon),
+        label: Text(text),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _info(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 7),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.left,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF151B4A),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF5F677B),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -47,7 +170,7 @@ class WorkerOrdersPage extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: repo.fetchAcceptedBookings(),
+        stream: repo.fetchWorkerBookings(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -58,7 +181,7 @@ class WorkerOrdersPage extends StatelessWidget {
           if (docs.isEmpty) {
             return const Center(
               child: Text(
-                'لا توجد طلبات مقبولة حالياً',
+                'لا توجد طلبات حالياً',
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
@@ -76,14 +199,19 @@ class WorkerOrdersPage extends StatelessWidget {
               final doc = docs[index];
               final data = doc.data();
 
-              final serviceTitle = data['serviceTitle'] ?? 'خدمة';
-              final userEmail = data['userEmail'] ?? 'غير معروف';
-              final date = data['date'] ?? '';
-              final time = data['time'] ?? '';
-              final location = data['location'] ?? '';
-              final carInfo = data['carInfo'] ?? '';
+              final status = (data['status'] ?? '').toString().trim();
+              final serviceTitle = data['serviceTitle']?.toString() ?? 'خدمة';
+              final userEmail = data['userEmail']?.toString() ?? 'غير معروف';
+              final date = data['date']?.toString() ?? '';
+              final time = data['time']?.toString() ?? '';
+              final location = data['location']?.toString() ?? '';
+              final carInfo = data['carInfo']?.toString() ?? '';
               final totalPrice = data['totalPrice'] ?? 0;
               final addons = List<String>.from(data['addons'] ?? []);
+
+              final isAccepted = _isAccepted(status);
+              final isInProgress = _isInProgress(status);
+              final isCompleted = _isCompleted(status);
 
               return Container(
                 padding: const EdgeInsets.all(16),
@@ -91,21 +219,16 @@ class WorkerOrdersPage extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: const Color(0xFFE8EDFF)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF9DB5FF).withOpacity(0.10),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
-                      'طلب مقبول',
+                    Text(
+                      status.isEmpty ? 'غير محدد' : status,
                       style: TextStyle(
-                        color: Color(0xFF12C96F),
+                        color: isCompleted
+                            ? const Color(0xFF12C96F)
+                            : const Color(0xFF1670FF),
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -126,76 +249,67 @@ class WorkerOrdersPage extends StatelessWidget {
                     _info('الموقع', location),
                     _info('السيارة', carInfo),
                     _info('الإجمالي', '$totalPrice ريال'),
-                    if (addons.isNotEmpty)
-                      _info('الإضافات', addons.join('، ')),
-                    const SizedBox(height: 16),
+                    if (addons.isNotEmpty) _info('الإضافات', addons.join('، ')),
+                    const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          await _completeOrder(
-                            context,
-                            repo,
-                            doc.id,
-                            data,
-                          );
+                      height: 45,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          _openMap(context, data);
                         },
-                        icon: const Icon(Icons.done_all_rounded),
-                        label: const Text(
-                          'تم التنفيذ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF12C96F),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
+                        icon: const Icon(Icons.location_on_rounded),
+                        label: const Text('عرض الموقع على الخريطة'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF1670FF),
+                          side: const BorderSide(color: Color(0xFF1670FF)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    if (isAccepted)
+                      _actionButton(
+                        text: 'قيد الغسيل',
+                        icon: Icons.play_arrow_rounded,
+                        color: const Color(0xFF1670FF),
+                        onPressed: () async {
+                          await _startOrder(context, repo, doc.id, data);
+                        },
+                      )
+                    else if (isInProgress)
+                      _actionButton(
+                        text: 'تم الانتهاء',
+                        icon: Icons.done_all_rounded,
+                        color: const Color(0xFF12C96F),
+                        onPressed: () async {
+                          await _completeOrder(context, repo, doc.id, data);
+                        },
+                      )
+                    else if (isCompleted)
+                      const Text(
+                        'تم إنهاء هذا الطلب',
+                        style: TextStyle(
+                          color: Color(0xFF12C96F),
+                          fontWeight: FontWeight.w800,
+                        ),
+                      )
+                    else
+                      const Text(
+                        'هذا الطلب غير قابل للتنفيذ حالياً',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                   ],
                 ),
               );
             },
           );
         },
-      ),
-    );
-  }
-
-  Widget _info(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 7),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.left,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF151B4A),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            textAlign: TextAlign.right,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF5F677B),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
       ),
     );
   }

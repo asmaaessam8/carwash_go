@@ -46,7 +46,7 @@ class _BottomNavWidgetState extends State<BottomNavWidget> {
     }
 
     if (index == 2) {
-      await _openPage( PackagesPage());
+      await _openPage(PackagesPage());
       return;
     }
 
@@ -58,28 +58,36 @@ class _BottomNavWidgetState extends State<BottomNavWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 0, 14, 14),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
         borderRadius: BorderRadius.circular(26),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6E7BAA).withOpacity(0.12),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.transparent,
+        ),
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: const Color(0xFF6E7BAA).withOpacity(0.12),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
       ),
       child: GNav(
         selectedIndex: _selectedIndex,
         onTabChange: _onTabChange,
         gap: 8,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        activeColor: Colors.white,
-        color: const Color(0xFF8B95A7),
-        tabBackgroundColor: const Color(0xFF1670FF),
+        activeColor: isDark ? Colors.black : Colors.white,
+        color: isDark ? Colors.white70 : const Color(0xFF8B95A7),
+        tabBackgroundColor: isDark ? Colors.white : const Color(0xFF1670FF),
         tabs: const [
           GButton(
             icon: Icons.home_rounded,

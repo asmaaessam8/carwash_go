@@ -14,6 +14,7 @@ class AdminProductsPage extends StatelessWidget {
     final repo = AdminRepository();
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('إدارة الخدمات'),
         backgroundColor: const Color(0xFF1670FF),
@@ -46,6 +47,7 @@ class AdminProductsPage extends StatelessWidget {
               final id = docs[i].id;
 
               return Card(
+                color: Colors.white,
                 child: ListTile(
                   leading: _imagePreview(data['imageBase64']),
                   title: Text(data['title'] ?? ''),
@@ -56,7 +58,10 @@ class AdminProductsPage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        icon: const Icon(
+                          Icons.edit,
+                          color: Colors.blue,
+                        ),
                         onPressed: () {
                           _showProductDialog(
                             context,
@@ -67,8 +72,12 @@ class AdminProductsPage extends StatelessWidget {
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteDialog(context, repo, id),
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Colors.red,
+                        ),
+                        onPressed: () =>
+                            _deleteDialog(context, repo, id),
                       ),
                     ],
                   ),
@@ -82,8 +91,12 @@ class AdminProductsPage extends StatelessWidget {
   }
 
   Widget _imagePreview(dynamic imageBase64) {
-    if (imageBase64 == null || imageBase64.toString().trim().isEmpty) {
-      return const Icon(Icons.local_car_wash_rounded, color: Color(0xFF1670FF));
+    if (imageBase64 == null ||
+        imageBase64.toString().trim().isEmpty) {
+      return const Icon(
+        Icons.local_car_wash_rounded,
+        color: Color(0xFF1670FF),
+      );
     }
 
     try {
@@ -94,16 +107,28 @@ class AdminProductsPage extends StatelessWidget {
         fit: BoxFit.cover,
       );
     } catch (_) {
-      return const Icon(Icons.local_car_wash_rounded, color: Color(0xFF1670FF));
+      return const Icon(
+        Icons.local_car_wash_rounded,
+        color: Color(0xFF1670FF),
+      );
     }
   }
 
-  Future<List<String>> _getCategories(AdminRepository repo) async {
-    final snapshot = await repo.fetchCategories().first;
+  Future<List<String>> _getCategories(
+    AdminRepository repo,
+  ) async {
+    final snapshot =
+        await repo.fetchCategories().first;
 
     return snapshot.docs
-        .map((doc) => doc.data()['name']?.toString() ?? '')
-        .where((name) => name.trim().isNotEmpty)
+        .map(
+          (doc) =>
+              doc.data()['name']?.toString() ??
+              '',
+        )
+        .where(
+          (name) => name.trim().isNotEmpty,
+        )
         .toList();
   }
 
@@ -115,20 +140,44 @@ class AdminProductsPage extends StatelessWidget {
   }) async {
     final isEdit = productId != null;
 
-    final titleController = TextEditingController(text: oldData?['title'] ?? '');
-    final descriptionController =
-        TextEditingController(text: oldData?['description'] ?? '');
-    final priceController =
-        TextEditingController(text: oldData?['price']?.toString() ?? '');
+    final titleController =
+        TextEditingController(
+          text: oldData?['title'] ?? '',
+        );
 
-    String? imageBase64 = oldData?['imageBase64'];
+    final descriptionController =
+        TextEditingController(
+          text:
+              oldData?['description'] ?? '',
+        );
+
+    final priceController =
+        TextEditingController(
+          text:
+              oldData?['price']
+                  ?.toString() ??
+              '',
+        );
+
+    String? imageBase64 =
+        oldData?['imageBase64'];
+
     final picker = ImagePicker();
 
-    final categories = await _getCategories(repo);
-    String? selectedCategory = oldData?['category'];
+    final categories =
+        await _getCategories(repo);
 
-    if (selectedCategory == null || !categories.contains(selectedCategory)) {
-      selectedCategory = categories.isNotEmpty ? categories.first : null;
+    String? selectedCategory =
+        oldData?['category'];
+
+    if (selectedCategory == null ||
+        !categories.contains(
+          selectedCategory,
+        )) {
+      selectedCategory =
+          categories.isNotEmpty
+              ? categories.first
+              : null;
     }
 
     if (!context.mounted) return;
@@ -137,72 +186,158 @@ class AdminProductsPage extends StatelessWidget {
       context: context,
       builder: (_) {
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (
+            context,
+            setDialogState,
+          ) {
             return AlertDialog(
-              title: Text(isEdit ? 'تعديل خدمة' : 'إضافة خدمة'),
+              backgroundColor: Colors.white,
+              title: Text(
+                isEdit
+                    ? 'تعديل خدمة'
+                    : 'إضافة خدمة',
+              ),
               content: SingleChildScrollView(
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisSize:
+                      MainAxisSize.min,
                   children: [
                     TextField(
-                      controller: titleController,
-                      decoration: const InputDecoration(labelText: 'الاسم'),
+                      controller:
+                          titleController,
+                      decoration:
+                          const InputDecoration(
+                            labelText:
+                                'الاسم',
+                            filled: true,
+                            fillColor:
+                                Colors.white,
+                          ),
                     ),
                     TextField(
-                      controller: descriptionController,
-                      decoration: const InputDecoration(labelText: 'الوصف'),
+                      controller:
+                          descriptionController,
+                      decoration:
+                          const InputDecoration(
+                            labelText:
+                                'الوصف',
+                            filled: true,
+                            fillColor:
+                                Colors.white,
+                          ),
                     ),
                     TextField(
-                      controller: priceController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'السعر'),
+                      controller:
+                          priceController,
+                      keyboardType:
+                          TextInputType
+                              .number,
+                      decoration:
+                          const InputDecoration(
+                            labelText:
+                                'السعر',
+                            filled: true,
+                            fillColor:
+                                Colors.white,
+                          ),
                     ),
-                    const SizedBox(height: 12),
-
-                    DropdownButtonFormField<String>(
-                      value: selectedCategory,
-                      decoration: const InputDecoration(labelText: 'التصنيف'),
-                      items: categories.map((category) {
-                        return DropdownMenuItem(
-                          value: category,
-                          child: Text(category),
-                        );
-                      }).toList(),
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    DropdownButtonFormField<
+                      String
+                    >(
+                      value:
+                          selectedCategory,
+                      decoration:
+                          const InputDecoration(
+                            labelText:
+                                'التصنيف',
+                            filled: true,
+                            fillColor:
+                                Colors.white,
+                          ),
+                      items:
+                          categories.map((
+                            category,
+                          ) {
+                            return DropdownMenuItem(
+                              value:
+                                  category,
+                              child: Text(
+                                category,
+                              ),
+                            );
+                          }).toList(),
                       onChanged: (value) {
                         setDialogState(() {
-                          selectedCategory = value;
+                          selectedCategory =
+                              value;
                         });
                       },
                     ),
-
-                    const SizedBox(height: 12),
-
+                    const SizedBox(
+                      height: 12,
+                    ),
                     ElevatedButton(
                       onPressed: () async {
-                        final picked = await picker.pickImage(
-                          source: ImageSource.gallery,
-                        );
+                        final picked =
+                            await picker.pickImage(
+                              source:
+                                  ImageSource
+                                      .gallery,
+                            );
 
-                        if (picked != null) {
-                          final bytes = await picked.readAsBytes();
-                          imageBase64 = base64Encode(bytes);
-                          setDialogState(() {});
+                        if (picked !=
+                            null) {
+                          final bytes =
+                              await picked
+                                  .readAsBytes();
+
+                          imageBase64 =
+                              base64Encode(
+                                bytes,
+                              );
+
+                          setDialogState(
+                            () {},
+                          );
                         }
                       },
+                      style:
+                          ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Colors.white,
+                            foregroundColor:
+                                const Color(
+                                  0xFF1670FF,
+                                ),
+                          ),
                       child: Text(
-                        imageBase64 == null || imageBase64!.isEmpty
+                        imageBase64 ==
+                                    null ||
+                                imageBase64!
+                                    .isEmpty
                             ? 'اختيار صورة'
                             : 'تغيير الصورة',
                       ),
                     ),
-
-                    if (imageBase64 != null && imageBase64!.isNotEmpty)
+                    if (imageBase64 !=
+                            null &&
+                        imageBase64!
+                            .isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(top: 10),
+                        padding:
+                            const EdgeInsets.only(
+                              top: 10,
+                            ),
                         child: Image.memory(
-                          base64Decode(imageBase64!),
+                          base64Decode(
+                            imageBase64!,
+                          ),
                           height: 100,
-                          fit: BoxFit.contain,
+                          fit:
+                              BoxFit.contain,
                         ),
                       ),
                   ],
@@ -210,45 +345,101 @@ class AdminProductsPage extends StatelessWidget {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('إلغاء'),
+                  onPressed:
+                      () => Navigator.pop(
+                        context,
+                      ),
+                  child: const Text(
+                    'إلغاء',
+                  ),
                 ),
                 TextButton(
                   onPressed: () async {
-                    if (titleController.text.trim().isEmpty ||
-                        priceController.text.trim().isEmpty ||
-                        imageBase64 == null ||
-                        imageBase64!.isEmpty ||
-                        selectedCategory == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('أكملي البيانات')),
+                    if (titleController.text
+                            .trim()
+                            .isEmpty ||
+                        priceController.text
+                            .trim()
+                            .isEmpty ||
+                        imageBase64 ==
+                            null ||
+                        imageBase64!
+                            .isEmpty ||
+                        selectedCategory ==
+                            null) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'أكملي البيانات',
+                          ),
+                        ),
                       );
                       return;
                     }
 
                     if (isEdit) {
-                      await repo.updateProduct(
-                        productId: productId,
-                        title: titleController.text.trim(),
-                        description: descriptionController.text.trim(),
-                        price: int.tryParse(priceController.text.trim()) ?? 0,
-                        imageBase64: imageBase64!,
-                        category: selectedCategory!,
-                      );
+                      await repo
+                          .updateProduct(
+                            productId:
+                                productId,
+                            title:
+                                titleController
+                                    .text
+                                    .trim(),
+                            description:
+                                descriptionController
+                                    .text
+                                    .trim(),
+                            price:
+                                int.tryParse(
+                                  priceController
+                                      .text
+                                      .trim(),
+                                ) ??
+                                0,
+                            imageBase64:
+                                imageBase64!,
+                            category:
+                                selectedCategory!,
+                          );
                     } else {
                       await repo.addProduct(
-                        title: titleController.text.trim(),
-                        description: descriptionController.text.trim(),
-                        price: int.tryParse(priceController.text.trim()) ?? 0,
-                        imageBase64: imageBase64!,
-                        category: selectedCategory!,
+                        title:
+                            titleController
+                                .text
+                                .trim(),
+                        description:
+                            descriptionController
+                                .text
+                                .trim(),
+                        price:
+                            int.tryParse(
+                              priceController
+                                  .text
+                                  .trim(),
+                            ) ??
+                            0,
+                        imageBase64:
+                            imageBase64!,
+                        category:
+                            selectedCategory!,
                       );
                     }
 
-                    if (!context.mounted) return;
-                    Navigator.pop(context);
+                    if (!context.mounted)
+                      return;
+
+                    Navigator.pop(
+                      context,
+                    );
                   },
-                  child: Text(isEdit ? 'تحديث' : 'حفظ'),
+                  child: Text(
+                    isEdit
+                        ? 'تحديث'
+                        : 'حفظ',
+                  ),
                 ),
               ],
             );
@@ -258,31 +449,55 @@ class AdminProductsPage extends StatelessWidget {
     );
   }
 
-  void _deleteDialog(BuildContext context, AdminRepository repo, String id) {
+  void _deleteDialog(
+    BuildContext context,
+    AdminRepository repo,
+    String id,
+  ) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: const Text('هل أنت متأكدة من حذف هذه الخدمة؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () async {
-              await repo.deleteProduct(id);
-
-              if (!context.mounted) return;
-              Navigator.pop(context);
-            },
-            child: const Text(
-              'حذف',
-              style: TextStyle(color: Colors.red),
+      builder:
+          (_) => AlertDialog(
+            backgroundColor:
+                Colors.white,
+            title: const Text(
+              'تأكيد الحذف',
             ),
+            content: const Text(
+              'هل أنت متأكدة من حذف هذه الخدمة؟',
+            ),
+            actions: [
+              TextButton(
+                onPressed:
+                    () => Navigator.pop(
+                      context,
+                    ),
+                child: const Text(
+                  'إلغاء',
+                ),
+              ),
+              TextButton(
+                onPressed: () async {
+                  await repo.deleteProduct(
+                    id,
+                  );
+
+                  if (!context.mounted)
+                    return;
+
+                  Navigator.pop(
+                    context,
+                  );
+                },
+                child: const Text(
+                  'حذف',
+                  style: TextStyle(
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }

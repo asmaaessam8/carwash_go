@@ -1,8 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:googleapis_auth/auth_io.dart';
-import 'package:http/http.dart' as http;
 
 class FcmSenderService {
   static const String _projectId = 'carwash-go-a8adc';
@@ -13,6 +13,11 @@ class FcmSenderService {
     required String body,
     Map<String, String>? data,
   }) async {
+    if (token.trim().isEmpty) {
+      debugPrint('FCM TOKEN EMPTY');
+      return;
+    }
+
     final serviceAccountJson = await rootBundle.loadString(
       'assets/keys/service_account.json',
     );
@@ -33,20 +38,28 @@ class FcmSenderService {
 
     final response = await client.post(
       url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'message': {
-          'token': token,
+          'token': token.trim(),
           'notification': {
             'title': title,
             'body': body,
           },
           'data': data ?? {},
+          'android': {
+            'priority': 'high',
+            'notification': {
+              'sound': 'default',
+              'channel_id': 'high_importance_channel',
+            },
+          },
         },
       }),
     );
+
+    debugPrint('FCM RESPONSE CODE: ${response.statusCode}');
+    debugPrint('FCM RESPONSE BODY: ${response.body}');
 
     client.close();
 

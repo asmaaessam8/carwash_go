@@ -26,12 +26,18 @@ class BookingSuccessPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor:
+          isDark ? Colors.black : const Color(0xFFF7F8FC),
+
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(22),
+
             child: Column(
               children: [
                 const SizedBox(height: 20),
@@ -39,10 +45,16 @@ class BookingSuccessPage extends StatelessWidget {
                 Container(
                   width: 105,
                   height: 105,
+
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEAF8F0),
+                    color:
+                        isDark
+                            ? Colors.white12
+                            : const Color(0xFFEAF8F0),
+
                     borderRadius: BorderRadius.circular(34),
                   ),
+
                   child: const Icon(
                     Icons.check_circle_rounded,
                     color: Color(0xFF12C96F),
@@ -52,76 +64,147 @@ class BookingSuccessPage extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                const Text(
+                Text(
                   'تم تأكيد الحجز بنجاح',
+
                   textAlign: TextAlign.center,
+
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF151B4A),
+
+                    color:
+                        isDark
+                            ? Colors.white
+                            : const Color(0xFF151B4A),
                   ),
                 ),
 
                 const SizedBox(height: 10),
 
-                const Text(
+                Text(
                   'عامل غسيل السيارات في الطريق إليك الآن',
+
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 17, color: Color(0xFF5F677B)),
+
+                  style: TextStyle(
+                    fontSize: 17,
+
+                    color:
+                        isDark
+                            ? Colors.white70
+                            : const Color(0xFF5F677B),
+                  ),
                 ),
 
                 const SizedBox(height: 28),
 
                 Container(
                   padding: const EdgeInsets.all(18),
+
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color:
+                        isDark
+                            ? const Color(0xFF1C1C1E)
+                            : Colors.white,
+
                     borderRadius: BorderRadius.circular(26),
-                    border: Border.all(color: const Color(0xFFE8EDFF)),
+
+                    border: Border.all(
+                      color:
+                          isDark
+                              ? Colors.white12
+                              : const Color(0xFFE8EDFF),
+                    ),
                   ),
+
                   child: Column(
                     children: [
                       _row(
+                        context,
                         'الخدمة',
                         serviceTitle,
                         Icons.local_car_wash_rounded,
                       ),
-                      _row('التاريخ', date, Icons.calendar_month_rounded),
-                      _row('الوقت', time, Icons.access_time_rounded),
-                      _row('الموقع', location, Icons.location_on_rounded),
-                      _row('السيارة', carInfo, Icons.directions_car_rounded),
+
+                      _row(
+                        context,
+                        'التاريخ',
+                        date,
+                        Icons.calendar_month_rounded,
+                      ),
+
+                      _row(
+                        context,
+                        'الوقت',
+                        time,
+                        Icons.access_time_rounded,
+                      ),
+
+                      _row(
+                        context,
+                        'الموقع',
+                        location,
+                        Icons.location_on_rounded,
+                      ),
+
+                      _row(
+                        context,
+                        'السيارة',
+                        carInfo,
+                        Icons.directions_car_rounded,
+                      ),
 
                       if (addons.isNotEmpty)
                         _row(
+                          context,
                           'الإضافات',
                           addons.join('، '),
                           Icons.add_box_rounded,
                         ),
 
                       _row(
+                        context,
                         'طريقة الدفع',
                         paymentMethod,
                         Icons.payments_rounded,
                       ),
 
-                      const Divider(height: 24),
+                      Divider(
+                        height: 24,
+                        color:
+                            isDark
+                                ? Colors.white12
+                                : const Color(0xFFE7EAF4),
+                      ),
 
                       Row(
                         children: [
                           Text(
                             '$totalPrice ريال',
+
                             style: const TextStyle(
                               fontSize: 24,
                               color: Color(0xFF1670FF),
                               fontWeight: FontWeight.w900,
                             ),
                           ),
+
                           const Spacer(),
-                          const Text(
+
+                          Text(
                             'إجمالي الرسوم',
+
                             style: TextStyle(
                               fontSize: 18,
-                              color: Color(0xFF151B4A),
+
+                              color:
+                                  isDark
+                                      ? Colors.white
+                                      : const Color(
+                                        0xFF151B4A,
+                                      ),
+
                               fontWeight: FontWeight.w900,
                             ),
                           ),
@@ -136,23 +219,35 @@ class BookingSuccessPage extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   height: 54,
+
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => const HomePage()),
+                        MaterialPageRoute(
+                          builder:
+                              (_) => const HomePage(),
+                        ),
                         (route) => false,
                       );
                     },
+
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0D6BFF),
+                      backgroundColor:
+                          const Color(0xFF0D6BFF),
+
                       foregroundColor: Colors.white,
+
                       elevation: 0,
+
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius:
+                            BorderRadius.circular(16),
                       ),
                     ),
+
                     child: const Text(
                       'العودة للرئيسية',
+
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -170,33 +265,62 @@ class BookingSuccessPage extends StatelessWidget {
     );
   }
 
-  Widget _row(String title, String value, IconData icon) {
+  Widget _row(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+  ) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
+
       child: Row(
         children: [
           Expanded(
             child: Text(
               value,
+
               textAlign: TextAlign.left,
-              style: const TextStyle(
+
+              style: TextStyle(
                 fontSize: 15,
-                color: Color(0xFF151B4A),
+
+                color:
+                    isDark
+                        ? Colors.white
+                        : const Color(0xFF151B4A),
+
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
+
           const SizedBox(width: 12),
+
           Text(
             title,
-            style: const TextStyle(
+
+            style: TextStyle(
               fontSize: 15,
-              color: Color(0xFF5F677B),
+
+              color:
+                  isDark
+                      ? Colors.white70
+                      : const Color(0xFF5F677B),
+
               fontWeight: FontWeight.w800,
             ),
           ),
+
           const SizedBox(width: 10),
-          Icon(icon, color: const Color(0xFF1670FF)),
+
+          Icon(
+            icon,
+            color: const Color(0xFF1670FF),
+          ),
         ],
       ),
     );

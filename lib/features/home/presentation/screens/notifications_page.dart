@@ -37,210 +37,409 @@ class NotificationsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor:
+          isDark ? Colors.black : Colors.white,
+
       appBar: AppBar(
         title: const Text('التنبيهات'),
+
         backgroundColor: const Color(0xFF1670FF),
+
         foregroundColor: Colors.white,
+
+        elevation: 0,
       ),
-      body: user == null
-          ? const Center(
-              child: Text(
-                'يجب تسجيل الدخول لعرض التنبيهات',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF151B4A),
+
+      body:
+          user == null
+              ? Center(
+                child: Text(
+                  'يجب تسجيل الدخول لعرض التنبيهات',
+
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+
+                    color:
+                        isDark
+                            ? Colors.white
+                            : const Color(0xFF151B4A),
+                  ),
                 ),
-              ),
-            )
-          : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance
-                  .collection('notifications')
-                  .where('userId', isEqualTo: user.uid)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              )
+              : StreamBuilder<
+                QuerySnapshot<Map<String, dynamic>>
+              >(
+                stream:
+                    FirebaseFirestore.instance
+                        .collection('notifications')
+                        .where(
+                          'userId',
+                          isEqualTo: user.uid,
+                        )
+                        .snapshots(),
 
-                if (snapshot.hasError) {
-                  return const Center(
-                    child: Text('حدث خطأ أثناء تحميل التنبيهات'),
-                  );
-                }
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const Center(
+                      child:
+                          CircularProgressIndicator(),
+                    );
+                  }
 
-                final docs = snapshot.data?.docs ?? [];
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'حدث خطأ أثناء تحميل التنبيهات',
 
-                if (docs.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'لا توجد تنبيهات حالياً',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF151B4A),
-                      ),
-                    ),
-                  );
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: docs.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final doc = docs[index];
-                    final data = doc.data();
-
-                    final title = data['title'] ?? 'تنبيه جديد';
-                    final body = data['body'] ?? '';
-                    final serviceTitle = data['serviceTitle'] ?? '';
-                    final isRead = data['isRead'] == true;
-                    final createdAt = _formatDate(data['createdAt']);
-
-                    return InkWell(
-                      onTap: () async {
-                        if (!isRead) {
-                          await _markAsRead(doc.id);
-                        }
-
-                        if (!context.mounted) return;
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const BookingsPage(),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(18),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isRead
-                              ? Colors.white
-                              : const Color(0xFFEAF2FF),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: isRead
-                                ? const Color(0xFFE1E6F5)
-                                : const Color(0xFF1670FF),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF9DB5FF).withOpacity(0.08),
-                              blurRadius: 14,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
+                        style: TextStyle(
+                          color:
+                              isDark
+                                  ? Colors.white
+                                  : Colors.black,
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: isRead
-                                    ? const Color(0xFFF1F4FA)
-                                    : const Color(0xFFDDEBFF),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(
-                                isRead
-                                    ? Icons.notifications_none_rounded
-                                    : Icons.notifications_active_rounded,
-                                color: const Color(0xFF1670FF),
-                              ),
+                      ),
+                    );
+                  }
+
+                  final docs =
+                      snapshot.data?.docs ?? [];
+
+                  if (docs.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'لا توجد تنبيهات حالياً',
+
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight:
+                              FontWeight.w700,
+
+                          color:
+                              isDark
+                                  ? Colors.white70
+                                  : const Color(
+                                    0xFF151B4A,
+                                  ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(16),
+
+                    itemCount: docs.length,
+
+                    separatorBuilder:
+                        (_, __) =>
+                            const SizedBox(height: 16),
+
+                    itemBuilder: (context, index) {
+                      final doc = docs[index];
+
+                      final data = doc.data();
+
+                      final title =
+                          data['title']
+                              ?.toString() ??
+                          'تنبيه جديد';
+
+                      final body =
+                          data['body']
+                              ?.toString() ??
+                          '';
+
+                      final serviceTitle =
+                          data['serviceTitle']
+                              ?.toString() ??
+                          '';
+
+                      final isRead =
+                          data['isRead'] == true;
+
+                      final createdAt =
+                          _formatDate(
+                            data['createdAt'],
+                          );
+
+                      return InkWell(
+                        onTap: () async {
+                          if (!isRead) {
+                            await _markAsRead(
+                              doc.id,
+                            );
+                          }
+
+                          if (!context.mounted) {
+                            return;
+                          }
+
+                          Navigator.push(
+                            context,
+
+                            MaterialPageRoute(
+                              builder:
+                                  (_) =>
+                                      const BookingsPage(),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Row(
-                                    children: [
-                                      if (!isRead)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
+                          );
+                        },
+
+                        borderRadius:
+                            BorderRadius.circular(24),
+
+                        child: Container(
+                          padding:
+                              const EdgeInsets.all(16),
+
+                          decoration: BoxDecoration(
+                            color:
+                                isDark
+                                    ? const Color(
+                                      0xFF1C1C1E,
+                                    )
+                                    : isRead
+                                    ? Colors.white
+                                    : const Color(
+                                      0xFFEAF2FF,
+                                    ),
+
+                            borderRadius:
+                                BorderRadius.circular(
+                                  24,
+                                ),
+
+                            border: Border.all(
+                              color:
+                                  isDark
+                                      ? Colors
+                                          .white12
+                                      : isRead
+                                      ? const Color(
+                                        0xFFE1E6F5,
+                                      )
+                                      : const Color(
+                                        0xFF1670FF,
+                                      ),
+                            ),
+                          ),
+
+                          child: Row(
+                            crossAxisAlignment:
+                                CrossAxisAlignment
+                                    .start,
+
+                            children: [
+                              Container(
+                                width: 58,
+                                height: 58,
+
+                                decoration: BoxDecoration(
+                                  color:
+                                      isDark
+                                          ? Colors
+                                              .white12
+                                          : const Color(
+                                            0xFFEAF2FF,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF1670FF),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
+
+                                  borderRadius:
+                                      BorderRadius.circular(
+                                        18,
+                                      ),
+                                ),
+
+                                child: Icon(
+                                  isRead
+                                      ? Icons
+                                          .notifications_none_rounded
+                                      : Icons
+                                          .notifications_active_rounded,
+
+                                  color:
+                                      isDark
+                                          ? Colors
+                                              .white
+                                          : const Color(
+                                            0xFF1670FF,
                                           ),
-                                          child: const Text(
-                                            'جديد',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w800,
+
+                                  size: 30,
+                                ),
+                              ),
+
+                              const SizedBox(
+                                width: 14,
+                              ),
+
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment
+                                          .end,
+
+                                  children: [
+                                    if (!isRead)
+                                      Container(
+                                        padding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal:
+                                                  12,
+                                              vertical:
+                                                  5,
                                             ),
+
+                                        decoration: BoxDecoration(
+                                          color:
+                                              const Color(
+                                                0xFF1670FF,
+                                              ),
+
+                                          borderRadius:
+                                              BorderRadius.circular(
+                                                20,
+                                              ),
+                                        ),
+
+                                        child: const Text(
+                                          'جديد',
+
+                                          style: TextStyle(
+                                            color:
+                                                Colors
+                                                    .white,
+
+                                            fontSize:
+                                                12,
+
+                                            fontWeight:
+                                                FontWeight
+                                                    .w700,
                                           ),
                                         ),
-                                      const Spacer(),
-                                      Flexible(
+                                      ),
+
+                                    if (!isRead)
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+
+                                    Text(
+                                      title,
+
+                                      textAlign:
+                                          TextAlign
+                                              .right,
+
+                                      style: TextStyle(
+                                        fontSize: 18,
+
+                                        fontWeight:
+                                            FontWeight
+                                                .w900,
+
+                                        color:
+                                            isDark
+                                                ? Colors
+                                                    .white
+                                                : const Color(
+                                                  0xFF151B4A,
+                                                ),
+                                      ),
+                                    ),
+
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+
+                                    Text(
+                                      body,
+
+                                      textAlign:
+                                          TextAlign
+                                              .right,
+
+                                      style: TextStyle(
+                                        fontSize: 15,
+
+                                        color:
+                                            isDark
+                                                ? Colors
+                                                    .white70
+                                                : const Color(
+                                                  0xFF5F677B,
+                                                ),
+                                      ),
+                                    ),
+
+                                    if (serviceTitle
+                                        .isNotEmpty) ...[
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+
+                                      Align(
+                                        alignment:
+                                            Alignment
+                                                .centerRight,
+
                                         child: Text(
-                                          title,
-                                          textAlign: TextAlign.right,
-                                          overflow: TextOverflow.ellipsis,
+                                          serviceTitle,
+
                                           style: const TextStyle(
-                                            fontSize: 17,
-                                            fontWeight: FontWeight.w900,
-                                            color: Color(0xFF151B4A),
+                                            fontSize:
+                                                16,
+
+                                            color: Color(
+                                              0xFF1670FF,
+                                            ),
+
+                                            fontWeight:
+                                                FontWeight
+                                                    .w800,
                                           ),
                                         ),
                                       ),
                                     ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    body,
-                                    textAlign: TextAlign.right,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xFF5F677B),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  if (serviceTitle.toString().isNotEmpty) ...[
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      serviceTitle,
-                                      textAlign: TextAlign.right,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFF1670FF),
-                                        fontWeight: FontWeight.w800,
+
+                                    if (createdAt
+                                        .isNotEmpty) ...[
+                                      const SizedBox(
+                                        height: 10,
                                       ),
-                                    ),
-                                  ],
-                                  if (createdAt.isNotEmpty) ...[
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      createdAt,
-                                      textAlign: TextAlign.right,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF8B95A7),
-                                        fontWeight: FontWeight.w600,
+
+                                      Text(
+                                        createdAt,
+
+                                        style: TextStyle(
+                                          fontSize: 14,
+
+                                          color:
+                                              isDark
+                                                  ? Colors
+                                                      .white54
+                                                  : Colors
+                                                      .grey,
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ],
-                                ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                      );
+                    },
+                  );
+                },
+              ),
     );
   }
 }

@@ -1,38 +1,42 @@
-import 'dart:html' as html;
-
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+
+import 'local_notification_service.dart';
 
 class FirebaseMessagingService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   Future<void> initialize() async {
-    await _messaging.requestPermission();
-
-    if (html.Notification.permission != 'granted') {
-      await html.Notification.requestPermission();
-    }
-
-    final token = await _messaging.getToken(
-      vapidKey: 'BMSTGmqKa1wvMKkId6bGKtR5RGRgKvLy0IlIm-NrGIpTG2uiL7RXpXlJP1FinO73AaAQ3rDgwioFbtt8USy6RBU',
+    await _messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
     );
 
-    print('FCM TOKEN: $token');
+    final token = await _messaging.getToken();
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      final title = message.notification?.title ?? 'تنبيه جديد';
-      final body = message.notification?.body ?? '';
+    debugPrint('FCM TOKEN: $token');
 
-      print('Foreground message received');
-      print('Notification Title: $title');
-      print('Notification Body: $body');
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      final title =
+          message.notification?.title ??
+          message.data['title'] ??
+          'تنبيه جديد';
 
-      if (html.Notification.permission == 'granted') {
-        html.Notification(
-          title,
-          body: body,
-          icon: 'icons/Icon-192.png',
-        );
+      final body =
+          message.notification?.body ??
+          message.data['body'] ??
+          '';
+
+      if (title.toString().trim().isEmpty &&
+          body.toString().trim().isEmpty) {
+        return;
       }
+
+      await LocalNotificationService.showNotification(
+        title: title.toString(),
+        body: body.toString(),
+      );
     });
   }
 }

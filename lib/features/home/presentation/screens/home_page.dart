@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 import '../widgets/bottom_nav_widget.dart';
 import '../widgets/categories_widget.dart';
 import '../widgets/home_header.dart';
@@ -12,42 +11,43 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: isDark ? Colors.black : Colors.white,
+
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              /// الهيدر
-              HomeHeader(),
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: isDark ? Colors.black : Colors.white,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                HomeHeader(),
 
-              SizedBox(height: 16),
+                SizedBox(height: 20),
 
-              /// زر الأدمن (بيظهر فقط لو المستخدم Admin)
-              
+                PackageCarousel(),
 
-              SizedBox(height: 20),
+                SizedBox(height: 20),
 
-              /// الباقات
-              PackageCarousel(),
+                CategoriesWidget(),
 
-              SizedBox(height: 18),
+                SizedBox(height: 20),
 
-              /// التصنيفات
-              CategoriesWidget(),
+                ProductCardsSection(),
 
-              SizedBox(height: 18),
-
-              /// الخدمات
-              ProductCardsSection(),
-            ],
+                SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
 
-      /// البوتوم ناف
       bottomNavigationBar: const BottomNavWidget(),
     );
   }

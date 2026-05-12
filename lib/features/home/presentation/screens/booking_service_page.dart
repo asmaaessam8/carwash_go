@@ -1,9 +1,10 @@
 import 'dart:convert';
-import '../../data/repositories/notification_repository.dart';
-import 'package:flutter/material.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
+import '../../data/repositories/notification_repository.dart';
 import 'booking_success_page.dart';
 
 class BookingServicePage extends StatefulWidget {
@@ -35,7 +36,8 @@ class _BookingServicePageState extends State<BookingServicePage> {
   final notesController = TextEditingController();
 
   late List<String> selectedAddons;
-  String selectedPayment = 'الدفع عند الوصول';
+
+  String selectedPayment = 'cash_on_delivery';
   bool isSaving = false;
 
   final List<Map<String, dynamic>> addons = const [
@@ -81,12 +83,64 @@ class _BookingServicePageState extends State<BookingServicePage> {
     return selectedTime!.format(context);
   }
 
+  String get locationMapUrl {
+    final location = Uri.encodeComponent(locationController.text.trim());
+    return 'https://www.google.com/maps/search/?api=1&query=$location';
+  }
+
+  String getPaymentName(String value) {
+    switch (value) {
+      case 'cash_on_delivery':
+        return 'الدفع عند الوصول';
+      case 'jeeb':
+        return 'محفظة جيب';
+      case 'floosak':
+        return 'فلوسك';
+      case 'kuraimi':
+        return 'كريمي';
+      default:
+        return value;
+    }
+  }
+
+  String getPaymentAccountTitle(String value) {
+    switch (value) {
+      case 'cash_on_delivery':
+        return 'الدفع عند الوصول';
+      case 'jeeb':
+        return 'رقم نقطة جيب';
+      case 'floosak':
+        return 'رقم نقطة فلوسك';
+      case 'kuraimi':
+        return 'رقم نقطة كريمي';
+      default:
+        return 'رقم الدفع';
+    }
+  }
+
+  String getPaymentAccountNumber(String value) {
+    switch (value) {
+      case 'jeeb':
+        return '7 356854';
+      case 'floosak':
+        return '0134567';
+      case 'kuraimi':
+        return '1755370';
+      default:
+        return '';
+    }
+  }
+
+  String get selectedPaymentName => getPaymentName(selectedPayment);
+
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
+
   Widget _buildServiceImage() {
     if (widget.serviceImage.trim().isEmpty) {
-      return const Icon(
+      return Icon(
         Icons.local_car_wash_rounded,
         size: 100,
-        color: Color(0xFF1670FF),
+        color: isDark ? Colors.white : const Color(0xFF1670FF),
       );
     }
 
@@ -97,10 +151,10 @@ class _BookingServicePageState extends State<BookingServicePage> {
         fit: BoxFit.contain,
       );
     } catch (_) {
-      return const Icon(
+      return Icon(
         Icons.local_car_wash_rounded,
         size: 100,
-        color: Color(0xFF1670FF),
+        color: isDark ? Colors.white : const Color(0xFF1670FF),
       );
     }
   }
@@ -156,63 +210,64 @@ class _BookingServicePageState extends State<BookingServicePage> {
       return;
     }
 
-    final savedServiceTitle = widget.serviceTitle;
-    final savedDescription = widget.serviceDescription;
-    final savedDate = dateText;
-    final savedTime = timeText;
-    final savedLocation = locationController.text.trim();
-    final savedCarInfo = carController.text.trim();
-    final savedNotes = notesController.text.trim();
-    final savedAddons = List<String>.from(selectedAddons);
-    final savedPaymentMethod = selectedPayment;
-    final savedServicePrice = servicePrice;
-    final savedAddonsTotal = addonsTotal;
-    final savedTotalPrice = totalPrice;
-
     setState(() => isSaving = true);
 
     try {
-    final bookingRef =
-    await FirebaseFirestore.instance.collection('bookings').add({
-  'userId': user.uid,
-  'userEmail': user.email,
-  'serviceTitle': savedServiceTitle,
-  'serviceDescription': savedDescription,
-  'date': savedDate,
-  'time': savedTime,
-  'location': savedLocation,
-  'carInfo': savedCarInfo,
-  'notes': savedNotes,
-  'addons': savedAddons,
-  'paymentMethod': savedPaymentMethod,
-  'servicePrice': savedServicePrice,
-  'addonsTotal': savedAddonsTotal,
-  'totalPrice': savedTotalPrice,
-  'status': 'مؤكد',
-  'createdAt': FieldValue.serverTimestamp(),
-});
+      final bookingRef = await FirebaseFirestore.instance
+          .collection('bookings')
+          .add({
+            'userId': user.uid,
+            'userEmail': user.email,
+            'serviceTitle': widget.serviceTitle,
+            'serviceDescription': widget.serviceDescription,
+            'date': dateText,
+            'time': timeText,
+            'location': locationController.text.trim(),
+            'locationQuery': locationController.text.trim(),
+            'locationMapUrl': locationMapUrl,
+            'carInfo': carController.text.trim(),
+            'notes': notesController.text.trim(),
+            'addons': selectedAddons,
+            'paymentMethod': selectedPayment,
+            'paymentMethodName': selectedPaymentName,
+            'paymentAccountTitle': getPaymentAccountTitle(selectedPayment),
+            'paymentAccountNumber': getPaymentAccountNumber(selectedPayment),
+            'paymentStatus':
+                selectedPayment == 'cash_on_delivery'
+                    ? 'الدفع عند الوصول'
+                    : 'بانتظار التحويل',
+            'servicePrice': servicePrice,
+            'addonsTotal': addonsTotal,
+            'totalPrice': totalPrice,
+            'status': 'مؤكد',
+            'createdAt': FieldValue.serverTimestamp(),
+          });
 
-await NotificationRepository().notifyNewBooking(
-  userId: user.uid,
-  bookingId: bookingRef.id,
-  serviceTitle: savedServiceTitle,
-);
+      await NotificationRepository().notifyNewBooking(
+        userId: user.uid,
+        bookingId: bookingRef.id,
+        serviceTitle: widget.serviceTitle,
+      );
 
-      
+      await NotificationRepository().notifyAdminsNewBooking(
+        serviceTitle: widget.serviceTitle,
+        bookingId: bookingRef.id,
+      );
+
       if (!mounted) return;
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder:
               (_) => BookingSuccessPage(
-                serviceTitle: savedServiceTitle,
-                date: savedDate,
-                time: savedTime,
-                location: savedLocation,
-                carInfo: savedCarInfo,
-                addons: savedAddons,
-                paymentMethod: savedPaymentMethod,
-                totalPrice: savedTotalPrice,
+                serviceTitle: widget.serviceTitle,
+                date: dateText,
+                time: timeText,
+                location: locationController.text.trim(),
+                carInfo: carController.text.trim(),
+                addons: selectedAddons,
+                paymentMethod: selectedPaymentName,
+                totalPrice: totalPrice,
               ),
         ),
       );
@@ -239,13 +294,17 @@ await NotificationRepository().notifyNewBooking(
       builder: (_) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final modalIsDark = Theme.of(context).brightness == Brightness.dark;
+
             return Directionality(
               textDirection: TextDirection.rtl,
               child: Container(
                 padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                decoration: BoxDecoration(
+                  color: modalIsDark ? const Color(0xFF121212) : Colors.white,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -254,17 +313,23 @@ await NotificationRepository().notifyNewBooking(
                       width: 45,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFD8DDEA),
+                        color:
+                            modalIsDark
+                                ? Colors.white24
+                                : const Color(0xFFD8DDEA),
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
                     const SizedBox(height: 18),
-                    const Text(
+                    Text(
                       'اختيار الإضافات',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF151B4A),
+                        color:
+                            modalIsDark
+                                ? Colors.white
+                                : const Color(0xFF151B4A),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -278,13 +343,19 @@ await NotificationRepository().notifyNewBooking(
                         decoration: BoxDecoration(
                           color:
                               isSelected
-                                  ? const Color(0xFFEAF2FF)
-                                  : const Color(0xFFF7F8FC),
+                                  ? modalIsDark
+                                      ? Colors.white12
+                                      : Colors.white
+                                  : modalIsDark
+                                  ? const Color(0xFF1C1C1E)
+                                  : Colors.white,
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
                             color:
                                 isSelected
                                     ? const Color(0xFF1670FF)
+                                    : modalIsDark
+                                    ? Colors.white12
                                     : const Color(0xFFE1E6F5),
                           ),
                         ),
@@ -309,10 +380,13 @@ await NotificationRepository().notifyNewBooking(
                               children: [
                                 Text(
                                   addon['title'].toString(),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFF151B4A),
+                                    color:
+                                        modalIsDark
+                                            ? Colors.white
+                                            : const Color(0xFF151B4A),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -331,12 +405,16 @@ await NotificationRepository().notifyNewBooking(
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color:
+                                    modalIsDark ? Colors.white12 : Colors.white,
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.cleaning_services_rounded,
-                                color: Color(0xFF1670FF),
+                                color:
+                                    modalIsDark
+                                        ? Colors.white
+                                        : const Color(0xFF1670FF),
                               ),
                             ),
                           ],
@@ -394,7 +472,7 @@ await NotificationRepository().notifyNewBooking(
     final isOnlyAddons = widget.serviceTitle == 'إضافات';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor: isDark ? Colors.black : Colors.white,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(18),
@@ -403,19 +481,19 @@ await NotificationRepository().notifyNewBooking(
               children: [
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.arrow_back_rounded,
-                    color: Color(0xFF1670FF),
+                    color: isDark ? Colors.white : const Color(0xFF1670FF),
                     size: 30,
                   ),
                 ),
                 const Spacer(),
-                const Text(
+                Text(
                   'حجز الخدمة',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF1560D6),
+                    color: isDark ? Colors.white : const Color(0xFF1560D6),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -423,12 +501,15 @@ await NotificationRepository().notifyNewBooking(
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEAF2FF),
+                    color:
+                        isDark
+                            ? const Color(0xFF1C1C1E)
+                            : Colors.white,
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.calendar_month_rounded,
-                    color: Color(0xFF1670FF),
+                    color: isDark ? Colors.white : const Color(0xFF1670FF),
                     size: 30,
                   ),
                 ),
@@ -444,19 +525,19 @@ await NotificationRepository().notifyNewBooking(
                   const SizedBox(height: 14),
                   Text(
                     widget.serviceTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF151B4A),
+                      color: isDark ? Colors.white : const Color(0xFF151B4A),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     widget.serviceDescription,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
-                      color: Color(0xFF5F677B),
+                      color: isDark ? Colors.white70 : const Color(0xFF5F677B),
                     ),
                   ),
                 ],
@@ -479,7 +560,7 @@ await NotificationRepository().notifyNewBooking(
             _inputField(
               controller: locationController,
               icon: Icons.location_on_rounded,
-              hint: 'مثال: حي الياسمين، الرياض',
+              hint: 'مثال: حي النهضة، صنعاء',
             ),
             const SizedBox(height: 18),
             _sectionTitle('معلومات السيارة'),
@@ -499,9 +580,9 @@ await NotificationRepository().notifyNewBooking(
                 decoration: _cardDecoration(),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.arrow_back_ios_new_rounded,
-                      color: Color(0xFF9AA8C7),
+                      color: isDark ? Colors.white54 : const Color(0xFF9AA8C7),
                       size: 18,
                     ),
                     const Spacer(),
@@ -517,22 +598,48 @@ await NotificationRepository().notifyNewBooking(
                           fontWeight: FontWeight.w700,
                           color:
                               selectedAddons.isEmpty
-                                  ? const Color(0xFF8B95A7)
+                                  ? isDark
+                                      ? Colors.white54
+                                      : const Color(0xFF8B95A7)
+                                  : isDark
+                                  ? Colors.white
                                   : const Color(0xFF151B4A),
                         ),
                       ),
                     ),
                     const SizedBox(width: 10),
-                    const Icon(Icons.add_box_rounded, color: Color(0xFF1670FF)),
+                    Icon(
+                      Icons.add_box_rounded,
+                      color: isDark ? Colors.white : const Color(0xFF1670FF),
+                    ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 18),
             _sectionTitle('طريقة الدفع'),
-            _paymentOption('الدفع عند الوصول', Icons.payments_rounded),
-            _paymentOption('الدفع ببطاقة مدى', Icons.credit_card_rounded),
-            _paymentOption('Apple Pay', Icons.phone_iphone_rounded),
+            _paymentOption(
+              title: 'الدفع عند الوصول',
+              value: 'cash_on_delivery',
+              imagePath: '',
+              icon: Icons.payments_rounded,
+            ),
+            _paymentOption(
+              title: 'محفظة جيب',
+              value: 'jeeb',
+              imagePath: 'assets/images/jeeb.jpeg',
+            ),
+            _paymentOption(
+              title: 'فلوسك',
+              value: 'floosak',
+              imagePath: 'assets/images/floosak.jpeg',
+            ),
+            _paymentOption(
+              title: 'كريمي',
+              value: 'kuraimi',
+              imagePath: 'assets/images/kuraimi.jpeg',
+            ),
+            _paymentAccountBox(),
             const SizedBox(height: 18),
             Container(
               padding: const EdgeInsets.all(16),
@@ -542,7 +649,10 @@ await NotificationRepository().notifyNewBooking(
                 children: [
                   _priceRow('سعر الخدمة', servicePrice),
                   if (addonsTotal > 0) _priceRow('الإضافات', addonsTotal),
-                  const Divider(height: 22),
+                  Divider(
+                    height: 22,
+                    color: isDark ? Colors.white12 : const Color(0xFFE1E6F5),
+                  ),
                   Row(
                     children: [
                       Text(
@@ -554,12 +664,13 @@ await NotificationRepository().notifyNewBooking(
                         ),
                       ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         'الإجمالي',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF151B4A),
+                          color:
+                              isDark ? Colors.white : const Color(0xFF151B4A),
                         ),
                       ),
                     ],
@@ -603,25 +714,131 @@ await NotificationRepository().notifyNewBooking(
     );
   }
 
-  Widget _paymentOption(String title, IconData icon) {
-    final isSelected = selectedPayment == title;
+  Widget _paymentAccountBox() {
+    if (selectedPayment == 'cash_on_delivery') {
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(top: 14),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1C1C1E) : const Color(0xFFE8FFF2),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFF12C96F).withOpacity(0.35)),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Color(0xFF12C96F),
+              size: 30,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'سيتم الدفع للعامل عند وصوله وتنفيذ الخدمة.',
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : const Color(0xFF151B4A),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final title = getPaymentAccountTitle(selectedPayment);
+    final number = getPaymentAccountNumber(selectedPayment);
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: const Color(0xFF1670FF).withOpacity(0.25),
+          width: 1.3,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : const Color(0xFF151B4A),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SelectableText(
+            number,
+            textDirection: TextDirection.ltr,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1670FF),
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'حوّل المبلغ إلى الرقم أعلاه، ثم اضغط تأكيد الحجز.',
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : const Color(0xFF5F677B),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _paymentOption({
+    required String title,
+    required String value,
+    required String imagePath,
+    IconData? icon,
+  }) {
+    final isSelected = selectedPayment == value;
 
     return InkWell(
       onTap: () {
         setState(() {
-          selectedPayment = title;
+          selectedPayment = value;
         });
       },
       borderRadius: BorderRadius.circular(18),
       child: Container(
+        height: 62,
         margin: const EdgeInsets.only(top: 10),
-        padding: const EdgeInsets.all(15),
+        padding: const EdgeInsets.symmetric(horizontal: 13),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEAF2FF) : Colors.white,
+          color:
+              isSelected
+                  ? isDark
+                      ? Colors.white12
+                      : Colors.white
+                  : isDark
+                  ? const Color(0xFF1C1C1E)
+                  : Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color:
-                isSelected ? const Color(0xFF1670FF) : const Color(0xFFE1E6F5),
+                isSelected
+                    ? const Color(0xFF1670FF)
+                    : isDark
+                    ? Colors.white12
+                    : const Color(0xFFE1E6F5),
+            width: isSelected ? 1.5 : 1,
           ),
         ),
         child: Row(
@@ -633,19 +850,37 @@ await NotificationRepository().notifyNewBooking(
               color:
                   isSelected
                       ? const Color(0xFF1670FF)
+                      : isDark
+                      ? Colors.white54
                       : const Color(0xFF9AA8C7),
+              size: 25,
             ),
             const Spacer(),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF151B4A),
+              style: TextStyle(
+                fontSize: 15.5,
+                fontWeight: FontWeight.w900,
+                color: isDark ? Colors.white : const Color(0xFF151B4A),
               ),
             ),
             const SizedBox(width: 10),
-            Icon(icon, color: const Color(0xFF1670FF)),
+            Container(
+              width: 62,
+              height: 36,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child:
+                  imagePath.isEmpty
+                      ? Icon(
+                        icon ?? Icons.payments_rounded,
+                        color: const Color(0xFF1670FF),
+                      )
+                      : Image.asset(imagePath, fit: BoxFit.contain),
+            ),
           ],
         ),
       ),
@@ -659,18 +894,18 @@ await NotificationRepository().notifyNewBooking(
         children: [
           Text(
             '$price ريال',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF151B4A),
+              color: isDark ? Colors.white : const Color(0xFF151B4A),
             ),
           ),
           const Spacer(),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
-              color: Color(0xFF5F677B),
+              color: isDark ? Colors.white70 : const Color(0xFF5F677B),
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -681,16 +916,11 @@ await NotificationRepository().notifyNewBooking(
 
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
       borderRadius: BorderRadius.circular(18),
-      border: Border.all(color: const Color(0xFFE1E6F5)),
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xFF9DB5FF).withOpacity(0.08),
-          blurRadius: 14,
-          offset: const Offset(0, 5),
-        ),
-      ],
+      border: Border.all(
+        color: isDark ? Colors.white12 : const Color(0xFFE1E6F5),
+      ),
     );
   }
 
@@ -699,10 +929,10 @@ await NotificationRepository().notifyNewBooking(
       alignment: Alignment.centerRight,
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w800,
-          color: Color(0xFF1560D6),
+          color: isDark ? Colors.white : const Color(0xFF1560D6),
         ),
       ),
     );
@@ -722,21 +952,21 @@ await NotificationRepository().notifyNewBooking(
         decoration: _cardDecoration(),
         child: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: Color(0xFF9AA8C7),
+              color: isDark ? Colors.white54 : const Color(0xFF9AA8C7),
             ),
             const Spacer(),
             Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
-                color: Color(0xFF151B4A),
+                color: isDark ? Colors.white : const Color(0xFF151B4A),
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(width: 10),
-            Icon(icon, color: const Color(0xFF1670FF)),
+            Icon(icon, color: isDark ? Colors.white : const Color(0xFF1670FF)),
           ],
         ),
       ),
@@ -748,31 +978,45 @@ await NotificationRepository().notifyNewBooking(
     required IconData icon,
     required String hint,
     int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
   }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      textAlign: TextAlign.right,
-      decoration: InputDecoration(
-        hintText: hint,
-        suffixIcon: Icon(icon, color: const Color(0xFF1670FF)),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 15,
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        keyboardType: keyboardType,
+        textAlign: TextAlign.right,
+        style: TextStyle(
+          color: isDark ? Colors.white : const Color(0xFF151B4A),
+          fontWeight: FontWeight.w700,
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Color(0xFFE1E6F5)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Color(0xFFE1E6F5)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Color(0xFF1670FF), width: 1.3),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(
+            color: isDark ? Colors.white54 : const Color(0xFF9AA8C7),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+          suffixIcon: Icon(icon, color: const Color(0xFF1670FF), size: 22),
+          filled: true,
+          fillColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: isDark ? Colors.white12 : const Color(0xFFE1E6F5),
+              width: 1.2,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFF1670FF), width: 1.5),
+          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
     );
