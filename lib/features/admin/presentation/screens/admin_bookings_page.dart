@@ -12,9 +12,9 @@ class AdminBookingsPage extends StatelessWidget {
     final location = data['location']?.toString() ?? '';
 
     if (mapUrl.isEmpty && location.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('لا يوجد موقع لهذا الحجز')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا يوجد موقع لهذا الحجز')),
+      );
       return;
     }
 
@@ -24,20 +24,25 @@ class AdminBookingsPage extends StatelessWidget {
           : 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(location)}',
     );
 
-    final opened = await launchUrl(url, mode: LaunchMode.externalApplication);
+    final opened = await launchUrl(
+      url,
+      mode: LaunchMode.externalApplication,
+    );
 
     if (!opened) {
-      await launchUrl(url, mode: LaunchMode.platformDefault);
+      await launchUrl(
+        url,
+        mode: LaunchMode.platformDefault,
+      );
     }
   }
 
   Future<String?> _getWorkerId() async {
-    final workers =
-        await FirebaseFirestore.instance
-            .collection('users')
-            .where('role', isEqualTo: 'worker')
-            .limit(1)
-            .get();
+    final workers = await FirebaseFirestore.instance
+        .collection('users')
+        .where('role', isEqualTo: 'worker')
+        .limit(1)
+        .get();
 
     if (workers.docs.isEmpty) return null;
 
@@ -54,16 +59,28 @@ class AdminBookingsPage extends StatelessWidget {
 
     final workerId = await _getWorkerId();
 
+    print('WORKER ID: $workerId');
+
     if (workerId == null) {
       if (!context.mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('لا يوجد عامل متاح حالياً')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا يوجد عامل متاح حالياً')),
+      );
       return;
     }
 
-    await FirebaseFirestore.instance.collection('bookings').doc(bookingId).update({
+    final workerDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(workerId)
+        .get();
+
+    print('WORKER DATA: ${workerDoc.data()}');
+
+    await FirebaseFirestore.instance
+        .collection('bookings')
+        .doc(bookingId)
+        .update({
       'status': 'مقبول',
       'workerId': workerId,
       'updatedAt': FieldValue.serverTimestamp(),
@@ -101,7 +118,10 @@ class AdminBookingsPage extends StatelessWidget {
     await FirebaseFirestore.instance
         .collection('bookings')
         .doc(bookingId)
-        .update({'status': 'مرفوض', 'updatedAt': FieldValue.serverTimestamp()});
+        .update({
+      'status': 'مرفوض',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
 
     if (userId.isNotEmpty) {
       await NotificationRepository().notifyBookingRejected(
@@ -113,20 +133,24 @@ class AdminBookingsPage extends StatelessWidget {
 
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('تم رفض الحجز')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('تم رفض الحجز')),
+    );
   }
 
   Color _statusColor(String status) {
     if (status == 'مؤكد') return const Color(0xFF1670FF);
+
     if (status == 'مقبول' || status == 'طلب مقبول') {
       return const Color(0xFF12C96F);
     }
+
     if (status == 'قيد الغسيل' || status == 'قيد التنفيذ') {
       return Colors.orange;
     }
+
     if (status == 'مرفوض') return Colors.red;
+
     if (status == 'مكتمل') return Colors.green;
 
     return Colors.grey;
@@ -197,21 +221,22 @@ class AdminBookingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // تم التعديل إلى أبيض
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('إدارة الحجوزات'),
         backgroundColor: const Color(0xFF1670FF),
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream:
-            FirebaseFirestore.instance
-                .collection('bookings')
-                .orderBy('createdAt', descending: true)
-                .snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('bookings')
+            .orderBy('createdAt', descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
 
           final docs = snapshot.data?.docs ?? [];
@@ -252,7 +277,9 @@ class AdminBookingsPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFE8EDFF)),
+                  border: Border.all(
+                    color: const Color(0xFFE8EDFF),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -297,7 +324,8 @@ class AdminBookingsPage extends StatelessWidget {
                     _info('الموقع', location),
                     _info('السيارة', carInfo),
                     _info('الإجمالي', '$totalPrice ريال'),
-                    if (addons.isNotEmpty) _info('الإضافات', addons.join('، ')),
+                    if (addons.isNotEmpty)
+                      _info('الإضافات', addons.join('، ')),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
@@ -310,7 +338,9 @@ class AdminBookingsPage extends StatelessWidget {
                         label: const Text('عرض الموقع على الخريطة'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF1670FF),
-                          side: const BorderSide(color: Color(0xFF1670FF)),
+                          side: const BorderSide(
+                            color: Color(0xFF1670FF),
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -324,7 +354,11 @@ class AdminBookingsPage extends StatelessWidget {
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () async {
-                                await _rejectBooking(context, doc.id, data);
+                                await _rejectBooking(
+                                  context,
+                                  doc.id,
+                                  data,
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
@@ -340,7 +374,11 @@ class AdminBookingsPage extends StatelessWidget {
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () async {
-                                await _acceptBooking(context, doc.id, data);
+                                await _acceptBooking(
+                                  context,
+                                  doc.id,
+                                  data,
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF12C96F),

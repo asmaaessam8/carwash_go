@@ -38,7 +38,9 @@ class FcmSenderService {
 
     final response = await client.post(
       url,
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: jsonEncode({
         'message': {
           'token': token.trim(),
@@ -51,7 +53,7 @@ class FcmSenderService {
             'priority': 'high',
             'notification': {
               'sound': 'default',
-              'channel_id': 'high_importance_channel',
+              'channel_id': 'carwash_high_channel_4',
             },
           },
         },

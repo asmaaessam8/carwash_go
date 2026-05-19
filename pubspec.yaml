@@ -50,6 +50,8 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+  flutter_native_splash: ^2.4.4
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -58,6 +60,7 @@ flutter:
     - assets/keys/service_account.json
     - assets/images/welcome_car.png
     - assets/images/logo.png
+    - assets/images/image.png
     - assets/animations/car_wash.json
     - assets/images/package_6.png
     - assets/images/package_12.png
@@ -73,3 +76,19 @@ flutter:
     - family: CormorantGaramond
       fonts:
         - asset: assets/fonts/CormorantGaramond-Regular.ttf
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/image.png
+
+  android: true
+  ios: true
+
+  android_12:
+    image: assets/images/image.png
+    icon_background_color: "#FFFFFF"
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/image.png"
